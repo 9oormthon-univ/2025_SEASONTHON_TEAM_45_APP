@@ -3,6 +3,8 @@ import 'dart:io' show Platform;
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:carefreepass/data/models/ble_device_model.dart';
+import 'package:carefreepass/core/utils/crypto_utils.dart';
+import 'package:carefreepass/data/datasources/api_service.dart';
 
 abstract class BleRemoteDataSource {
   Stream<List<BleDeviceModel>> scanDevices();
@@ -17,20 +19,51 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
       StreamController<List<BleDeviceModel>>.broadcast();
   final Map<String, BleDeviceModel> _foundDevices = {};
   StreamSubscription? _scanSubscription;
+  final Set<String> _reportedDevices = {}; // 이미 보고된 디바이스 추적
+  static const int rssiThreshold = -50; // RSSI 임계값
 
   @override
   Stream<List<BleDeviceModel>> scanDevices() {
     _scanSubscription?.cancel();
     _scanSubscription = FlutterBluePlus.scanResults.listen(
-      (results) {
+      (results) async {
         for (ScanResult result in results) {
-          final device = BleDeviceModel.fromScanResult(result);
-          _foundDevices[device.id] = device;
+          // RSSI 필터링
+          if (result.rssi < rssiThreshold) {
+            continue;
+          }
+          
+          // SHA-256 검증
+          final deviceName = result.device.platformName;
+          final isValidHospital = CryptoUtils.verifyHospitalBeacon(deviceName);
+          
+          if (isValidHospital) {
+            print('====================================');
+            print('[BLE] 병원 비콘 감지!');
+            print('Device: $deviceName');
+            print('RSSI: ${result.rssi}');
+            print('====================================');
+            
+            final device = BleDeviceModel.fromScanResult(result);
+            _foundDevices[device.id] = device;
+            
+            // 자동 POST 요청 (중복 방지)
+            if (!_reportedDevices.contains(device.id)) {
+              _reportedDevices.add(device.id);
+              await ApiService.reportPatientArrival(
+                patientId: 'TEMP_USER_001', // TODO: 실제 사용자 ID로 변경
+                hospitalId: CryptoUtils.hospitalId,
+                rssi: result.rssi,
+              );
+            }
+            
+            // 필터링된 디바이스만 UI에 표시
+            _devicesController.add(_foundDevices.values.toList());
+          }
         }
-        _devicesController.add(_foundDevices.values.toList());
       },
       onError: (error) {
-        // 에러 로깅 (프로덕션에서는 로깅 프레임워크 사용)
+        print('[BLE] 스캔 에러: $error');
       },
     );
     

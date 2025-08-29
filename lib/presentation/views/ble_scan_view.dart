@@ -126,16 +126,34 @@ class _BleScanViewState extends State<BleScanView>
 
           if (state is BleScanning) {
             if (state.devices.isEmpty) {
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('BLE 디바이스 검색 중...'),
-                    SizedBox(height: 8),
-                    Text('nRF Connect 앱에서 비콘 신호를 켜주세요', 
-                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    const Text('병원 비콘 검색 중...'),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Column(
+                        children: [
+                          Text('조건:', style: TextStyle(fontWeight: FontWeight.bold)),
+                          SizedBox(height: 4),
+                          Text('✓ SHA-256 검증된 병원 비콘'),
+                          Text('✓ RSSI -50 이상 (가까운 거리)'),
+                          SizedBox(height: 8),
+                          Text('nRF Connect에서 해시값을 Device Name에 입력하세요',
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                            textAlign: TextAlign.center),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               );
