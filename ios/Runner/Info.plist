@@ -45,5 +45,17 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>병원 도착을 자동으로 감지하기 위해 블루투스 권한이 필요합니다</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>병원 내 비콘 신호를 감지하기 위해 블루투스 권한이 필요합니다</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>블루투스 기기 스캔을 위해 위치 권한이 필요합니다</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>병원 도착 자동 감지를 위해 위치 권한이 필요합니다</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+	</array>
 </dict>
 </plist>

@@ -34,6 +34,23 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  
+  # BLE 스캔을 위한 패키지
+  flutter_blue_plus: ^1.31.13
+  
+  # Bloc 상태관리
+  flutter_bloc: ^8.1.3
+  bloc: ^8.1.2
+  equatable: ^2.0.5
+  
+  # 의존성 주입
+  get_it: ^7.6.4
+  
+  # 함수형 프로그래밍 (Either)
+  dartz: ^0.10.1
+  
+  # 권한 처리
+  permission_handler: ^11.1.0
 
 dev_dependencies:
   flutter_test:
