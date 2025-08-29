@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'injection_container.dart' as di;
+import 'core/constants/app_colors.dart';
 import 'presentation/bloc/ble/ble_bloc.dart';
-import 'presentation/views/login_view.dart';
+import 'presentation/views/login_initial_view.dart';
+import 'presentation/views/login_input_view.dart';
+import 'presentation/views/signup_view.dart';
+import 'presentation/views/permission_settings_view.dart';
 import 'presentation/views/ble_scan_view.dart';
 import 'core/utils/crypto_utils.dart';
 
@@ -24,13 +28,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'CareFreePass',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryGreen),
         useMaterial3: true,
         fontFamily: 'Pretendard',
+        primaryColor: AppColors.primaryGreen,
       ),
-      home: const LoginView(),
+      home: const LoginInitialView(),
       routes: {
-        '/login': (context) => const LoginView(),
+        '/login': (context) => const LoginInitialView(),
+        '/login_input': (context) => const LoginInputView(),
+        '/signup': (context) => const SignupView(),
+        '/permission_check': (context) => const PermissionSettingsView(),
         '/ble_scan': (context) => BlocProvider(
           create: (_) => di.sl<BleBloc>(),
           child: const BleScanView(),

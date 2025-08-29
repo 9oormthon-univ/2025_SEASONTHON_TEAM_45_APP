@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../widgets/progress_indicator_bar.dart';
+import 'permission_settings_view.dart';
 
 class SignupView extends StatefulWidget {
   const SignupView({super.key});
@@ -9,580 +13,681 @@ class SignupView extends StatefulWidget {
 }
 
 class _SignupViewState extends State<SignupView> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  int _currentStep = 1;
+  
+  // Step 1 - Birth date
+  int? _selectedYear;
+  int? _selectedMonth;
+  int? _selectedDay;
+  
+  // Step 2 - Gender
+  String? _selectedGender;
+  
+  // Step 3 - Phone number
   final _phoneController = TextEditingController();
   
-  bool _isPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
-  bool _isLoading = false;
-  bool _agreeToTerms = false;
-  bool _agreeToPrivacy = false;
-  bool _agreeToMarketing = false;
+  // Step 4 - Password
+  final _passwordController = TextEditingController();
+  bool _isPasswordValid = false;
+  bool _hasMinLength = false;
+  bool _hasLetter = false;
+  bool _hasNumber = false;
+  bool _hasSpecialChar = false;
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
     _phoneController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  void _handleSignup() {
-    if (_formKey.currentState!.validate()) {
-      if (!_agreeToTerms || !_agreeToPrivacy) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('필수 약관에 동의해주세요'),
-            backgroundColor: Colors.red,
+  void _validatePassword(String value) {
+    setState(() {
+      _hasMinLength = value.length >= 8 && value.length <= 20;
+      _hasLetter = RegExp(r'[a-zA-Z]').hasMatch(value);
+      _hasNumber = RegExp(r'[0-9]').hasMatch(value);
+      _hasSpecialChar = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value);
+      _isPasswordValid = _hasMinLength && _hasLetter && _hasNumber && _hasSpecialChar;
+    });
+  }
+
+  void _nextStep() {
+    bool canProceed = false;
+    
+    switch (_currentStep) {
+      case 1:
+        canProceed = _selectedYear != null && _selectedMonth != null && _selectedDay != null;
+        break;
+      case 2:
+        canProceed = _selectedGender != null;
+        break;
+      case 3:
+        canProceed = _phoneController.text.isNotEmpty && _phoneController.text.length >= 10;
+        break;
+      case 4:
+        canProceed = _isPasswordValid;
+        break;
+    }
+    
+    if (canProceed) {
+      if (_currentStep < 4) {
+        setState(() {
+          _currentStep++;
+        });
+      } else {
+        // Complete signup and go to permission settings
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const PermissionSettingsView(),
           ),
         );
-        return;
       }
-      
-      setState(() {
-        _isLoading = true;
-      });
-      
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-          Navigator.of(context).pop();
-        }
-      });
     }
+  }
+
+  Widget _buildStepContent() {
+    switch (_currentStep) {
+      case 1:
+        return _buildBirthDateStep();
+      case 2:
+        return _buildGenderStep();
+      case 3:
+        return _buildPhoneNumberStep();
+      case 4:
+        return _buildPasswordStep();
+      default:
+        return const SizedBox();
+    }
+  }
+  
+  Widget _buildBirthDateStep() {
+    final currentYear = DateTime.now().year;
+    final years = List.generate(100, (index) => currentYear - index);
+    final months = List.generate(12, (index) => index + 1);
+    final days = List.generate(31, (index) => index + 1);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '처음 오셨군요!',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+        Text(
+          '생년월일을 입력해 주세요.',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+            fontWeight: FontWeight.w400,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+        
+        Text(
+          '생년월일',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
+        
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: ResponsiveUtils.inputFieldHeight(context),
+                padding: EdgeInsets.symmetric(horizontal: ResponsiveUtils.widthPercent(context, 3)),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.grayLight),
+                  borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                ),
+                child: DropdownButton<int>(
+                  value: _selectedYear,
+                  hint: Text('년', style: TextStyle(color: AppColors.textHint)),
+                  isExpanded: true,
+                  underline: const SizedBox(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedYear = value;
+                    });
+                  },
+                  items: years.map((year) {
+                    return DropdownMenuItem(
+                      value: year,
+                      child: Text('$year년'),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            SizedBox(width: ResponsiveUtils.widthPercent(context, 2)),
+            Expanded(
+              child: Container(
+                height: ResponsiveUtils.inputFieldHeight(context),
+                padding: EdgeInsets.symmetric(horizontal: ResponsiveUtils.widthPercent(context, 3)),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.grayLight),
+                  borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                ),
+                child: DropdownButton<int>(
+                  value: _selectedMonth,
+                  hint: Text('월', style: TextStyle(color: AppColors.textHint)),
+                  isExpanded: true,
+                  underline: const SizedBox(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedMonth = value;
+                    });
+                  },
+                  items: months.map((month) {
+                    return DropdownMenuItem(
+                      value: month,
+                      child: Text('$month월'),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            SizedBox(width: ResponsiveUtils.widthPercent(context, 2)),
+            Expanded(
+              child: Container(
+                height: ResponsiveUtils.inputFieldHeight(context),
+                padding: EdgeInsets.symmetric(horizontal: ResponsiveUtils.widthPercent(context, 3)),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.grayLight),
+                  borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                ),
+                child: DropdownButton<int>(
+                  value: _selectedDay,
+                  hint: Text('일', style: TextStyle(color: AppColors.textHint)),
+                  isExpanded: true,
+                  underline: const SizedBox(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedDay = value;
+                    });
+                  },
+                  items: days.map((day) {
+                    return DropdownMenuItem(
+                      value: day,
+                      child: Text('$day일'),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildGenderStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '처음 오셨군요!',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+        Text(
+          '성별을 입력해 주세요.',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+            fontWeight: FontWeight.w400,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+        
+        Text(
+          '성별',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
+        
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedGender = '남자';
+                  });
+                },
+                child: Container(
+                  height: ResponsiveUtils.buttonHeight(context),
+                  decoration: BoxDecoration(
+                    color: _selectedGender == '남자' ? AppColors.primaryGreen : Colors.white,
+                    border: Border.all(
+                      color: _selectedGender == '남자' ? AppColors.primaryGreen : AppColors.grayLight,
+                    ),
+                    borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '남자',
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                        fontWeight: FontWeight.w500,
+                        color: _selectedGender == '남자' ? Colors.white : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: ResponsiveUtils.widthPercent(context, 4)),
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedGender = '여자';
+                  });
+                },
+                child: Container(
+                  height: ResponsiveUtils.buttonHeight(context),
+                  decoration: BoxDecoration(
+                    color: _selectedGender == '여자' ? AppColors.primaryGreen : Colors.white,
+                    border: Border.all(
+                      color: _selectedGender == '여자' ? AppColors.primaryGreen : AppColors.grayLight,
+                    ),
+                    borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '여자',
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                        fontWeight: FontWeight.w500,
+                        color: _selectedGender == '여자' ? Colors.white : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        
+        // Keep birth date visible after selection
+        if (_selectedYear != null && _selectedMonth != null && _selectedDay != null) ...[
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+          Text(
+            '생년월일',
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 4)),
+            decoration: BoxDecoration(
+              color: AppColors.backgroundGray,
+              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+            ),
+            child: Text(
+              '$_selectedYear년 $_selectedMonth월 $_selectedDay일',
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                fontWeight: FontWeight.w400,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+  
+  Widget _buildPhoneNumberStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '본인 휴대번호로',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+        Text(
+          '회원가입을 진행해 주세요.',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+            fontWeight: FontWeight.w400,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+        
+        Text(
+          '전화번호',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
+        
+        Container(
+          height: ResponsiveUtils.inputFieldHeight(context),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.grayLight),
+            borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+          ),
+          child: TextField(
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              fontWeight: FontWeight.w400,
+            ),
+            decoration: InputDecoration(
+              hintText: '01012341234',
+              hintStyle: TextStyle(
+                color: AppColors.textHint,
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: ResponsiveUtils.widthPercent(context, 4),
+              ),
+            ),
+            onChanged: (_) => setState(() {}),
+          ),
+        ),
+        
+        // Show gender selection below
+        if (_selectedGender != null) ...[
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+          Text(
+            '성별',
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.widthPercent(context, 8),
+                  vertical: ResponsiveUtils.heightPercent(context, 1.5),
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen,
+                  borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                ),
+                child: Text(
+                  _selectedGender!,
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              SizedBox(width: ResponsiveUtils.widthPercent(context, 4)),
+              if (_selectedGender == '남자')
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ResponsiveUtils.widthPercent(context, 8),
+                    vertical: ResponsiveUtils.heightPercent(context, 1.5),
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: AppColors.grayLight),
+                    borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                  ),
+                  child: Text(
+                    '여자',
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              if (_selectedGender == '여자')
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ResponsiveUtils.widthPercent(context, 8),
+                    vertical: ResponsiveUtils.heightPercent(context, 1.5),
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: AppColors.grayLight),
+                    borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                  ),
+                  child: Text(
+                    '남자',
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+  
+  Widget _buildPasswordStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '비밀번호를 입력해 주세요.',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+        Text(
+          '영어, 대소문자로 8자 이상입니다.',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+            fontWeight: FontWeight.w400,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+        
+        Text(
+          '비밀번호',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
+        
+        Container(
+          height: ResponsiveUtils.inputFieldHeight(context),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.grayLight),
+            borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+          ),
+          child: TextField(
+            controller: _passwordController,
+            obscureText: true,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              fontWeight: FontWeight.w400,
+            ),
+            decoration: InputDecoration(
+              hintText: '••••••••',
+              hintStyle: TextStyle(
+                color: AppColors.textHint,
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: ResponsiveUtils.widthPercent(context, 4),
+              ),
+            ),
+            onChanged: _validatePassword,
+          ),
+        ),
+        
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
+        
+        // Password validation checklist
+        Row(
+          children: [
+            Icon(
+              _hasMinLength ? Icons.check : Icons.close,
+              size: ResponsiveUtils.iconSize(context, IconSizeType.small) * 0.8,
+              color: _hasMinLength ? AppColors.primaryGreen : AppColors.grayMedium,
+            ),
+            SizedBox(width: ResponsiveUtils.widthPercent(context, 2)),
+            Text(
+              '8-20자 이내',
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                color: _hasMinLength ? AppColors.primaryGreen : AppColors.grayMedium,
+              ),
+            ),
+            SizedBox(width: ResponsiveUtils.widthPercent(context, 4)),
+            Icon(
+              _hasLetter && _hasNumber && _hasSpecialChar ? Icons.check : Icons.close,
+              size: ResponsiveUtils.iconSize(context, IconSizeType.small) * 0.8,
+              color: _hasLetter && _hasNumber && _hasSpecialChar ? AppColors.primaryGreen : AppColors.grayMedium,
+            ),
+            SizedBox(width: ResponsiveUtils.widthPercent(context, 2)),
+            Text(
+              '영문 대소문자, 숫자 포함',
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                color: _hasLetter && _hasNumber && _hasSpecialChar ? AppColors.primaryGreen : AppColors.grayMedium,
+              ),
+            ),
+          ],
+        ),
+        
+        // Show phone number below
+        if (_phoneController.text.isNotEmpty) ...[
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+          Text(
+            '전화번호',
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 4)),
+            decoration: BoxDecoration(
+              color: AppColors.backgroundGray,
+              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+            ),
+            child: Text(
+              _phoneController.text,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                fontWeight: FontWeight.w400,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: Colors.black,
-            size: ResponsiveUtils.iconSize(context, IconSizeType.small),
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          '회원가입',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      backgroundColor: AppColors.backgroundWhite,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: ResponsiveUtils.defaultPadding(context),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.lg)),
-                
-                Text(
-                  'CareFreePass에 오신 것을 환영합니다',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
-                    fontWeight: FontWeight.w700,
-                    color: Colors.blue.shade800,
-                  ),
-                ),
-                
-                SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-                
-                Text(
-                  '간편하게 회원가입하고 서비스를 이용해보세요',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                    fontWeight: FontWeight.w400,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                
-                SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-                
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '이름',
-                        style: TextStyle(
-                          fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-                      Container(
-                        height: ResponsiveUtils.inputFieldHeight(context),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-                          border: Border.all(
-                            color: Colors.grey.shade300,
-                            width: 1,
-                          ),
-                        ),
-                        child: TextFormField(
-                          controller: _nameController,
-                          style: TextStyle(
-                            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: '실명을 입력해주세요',
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.person_outline,
-                              size: ResponsiveUtils.iconSize(context, IconSizeType.small),
-                              color: Colors.grey.shade600,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: ResponsiveUtils.widthPercent(context, 4),
-                              vertical: ResponsiveUtils.heightPercent(context, 2),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return '이름을 입력해주세요';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      
-                      SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
-                      
-                      Text(
-                        '이메일',
-                        style: TextStyle(
-                          fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-                      Container(
-                        height: ResponsiveUtils.inputFieldHeight(context),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-                          border: Border.all(
-                            color: Colors.grey.shade300,
-                            width: 1,
-                          ),
-                        ),
-                        child: TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          style: TextStyle(
-                            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'example@email.com',
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.email_outlined,
-                              size: ResponsiveUtils.iconSize(context, IconSizeType.small),
-                              color: Colors.grey.shade600,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: ResponsiveUtils.widthPercent(context, 4),
-                              vertical: ResponsiveUtils.heightPercent(context, 2),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return '이메일을 입력해주세요';
-                            }
-                            if (!value.contains('@')) {
-                              return '올바른 이메일 형식이 아닙니다';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      
-                      SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
-                      
-                      Text(
-                        '휴대폰 번호',
-                        style: TextStyle(
-                          fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-                      Container(
-                        height: ResponsiveUtils.inputFieldHeight(context),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-                          border: Border.all(
-                            color: Colors.grey.shade300,
-                            width: 1,
-                          ),
-                        ),
-                        child: TextFormField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          style: TextStyle(
-                            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: '010-0000-0000',
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.phone_outlined,
-                              size: ResponsiveUtils.iconSize(context, IconSizeType.small),
-                              color: Colors.grey.shade600,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: ResponsiveUtils.widthPercent(context, 4),
-                              vertical: ResponsiveUtils.heightPercent(context, 2),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return '휴대폰 번호를 입력해주세요';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      
-                      SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
-                      
-                      Text(
-                        '비밀번호',
-                        style: TextStyle(
-                          fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-                      Container(
-                        height: ResponsiveUtils.inputFieldHeight(context),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-                          border: Border.all(
-                            color: Colors.grey.shade300,
-                            width: 1,
-                          ),
-                        ),
-                        child: TextFormField(
-                          controller: _passwordController,
-                          obscureText: !_isPasswordVisible,
-                          style: TextStyle(
-                            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: '6자 이상 입력해주세요',
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.lock_outline,
-                              size: ResponsiveUtils.iconSize(context, IconSizeType.small),
-                              color: Colors.grey.shade600,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                                size: ResponsiveUtils.iconSize(context, IconSizeType.small),
-                                color: Colors.grey.shade600,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _isPasswordVisible = !_isPasswordVisible;
-                                });
-                              },
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: ResponsiveUtils.widthPercent(context, 4),
-                              vertical: ResponsiveUtils.heightPercent(context, 2),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return '비밀번호를 입력해주세요';
-                            }
-                            if (value.length < 6) {
-                              return '비밀번호는 6자 이상이어야 합니다';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      
-                      SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
-                      
-                      Text(
-                        '비밀번호 확인',
-                        style: TextStyle(
-                          fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-                      Container(
-                        height: ResponsiveUtils.inputFieldHeight(context),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-                          border: Border.all(
-                            color: Colors.grey.shade300,
-                            width: 1,
-                          ),
-                        ),
-                        child: TextFormField(
-                          controller: _confirmPasswordController,
-                          obscureText: !_isConfirmPasswordVisible,
-                          style: TextStyle(
-                            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: '비밀번호를 다시 입력해주세요',
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.lock_outline,
-                              size: ResponsiveUtils.iconSize(context, IconSizeType.small),
-                              color: Colors.grey.shade600,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                                size: ResponsiveUtils.iconSize(context, IconSizeType.small),
-                                color: Colors.grey.shade600,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                                });
-                              },
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: ResponsiveUtils.widthPercent(context, 4),
-                              vertical: ResponsiveUtils.heightPercent(context, 2),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return '비밀번호를 다시 입력해주세요';
-                            }
-                            if (value != _passwordController.text) {
-                              return '비밀번호가 일치하지 않습니다';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-                
-                Container(
-                  padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 4)),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: _agreeToTerms && _agreeToPrivacy && _agreeToMarketing,
-                            onChanged: (value) {
-                              setState(() {
-                                _agreeToTerms = value ?? false;
-                                _agreeToPrivacy = value ?? false;
-                                _agreeToMarketing = value ?? false;
-                              });
-                            },
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          Text(
-                            '전체 동의',
-                            style: TextStyle(
-                              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Divider(color: Colors.grey.shade300),
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: _agreeToTerms,
-                            onChanged: (value) {
-                              setState(() {
-                                _agreeToTerms = value ?? false;
-                              });
-                            },
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          Text(
-                            '[필수] 이용약관 동의',
-                            style: TextStyle(
-                              fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          const Spacer(),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: ResponsiveUtils.iconSize(context, IconSizeType.small) * 0.7,
-                            color: Colors.grey.shade400,
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: _agreeToPrivacy,
-                            onChanged: (value) {
-                              setState(() {
-                                _agreeToPrivacy = value ?? false;
-                              });
-                            },
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          Text(
-                            '[필수] 개인정보 처리방침 동의',
-                            style: TextStyle(
-                              fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          const Spacer(),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: ResponsiveUtils.iconSize(context, IconSizeType.small) * 0.7,
-                            color: Colors.grey.shade400,
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: _agreeToMarketing,
-                            onChanged: (value) {
-                              setState(() {
-                                _agreeToMarketing = value ?? false;
-                              });
-                            },
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          Text(
-                            '[선택] 마케팅 정보 수신 동의',
-                            style: TextStyle(
-                              fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          const Spacer(),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: ResponsiveUtils.iconSize(context, IconSizeType.small) * 0.7,
-                            color: Colors.grey.shade400,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                
-                SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-                
-                SizedBox(
-                  height: ResponsiveUtils.buttonHeight(context),
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleSignup,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isLoading
-                        ? SizedBox(
-                            width: ResponsiveUtils.iconSize(context, IconSizeType.small),
-                            height: ResponsiveUtils.iconSize(context, IconSizeType.small),
-                            child: const CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(
-                            '회원가입',
-                            style: TextStyle(
-                              fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
-                ),
-                
-                SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-              ],
+        child: Column(
+          children: [
+            // Header with progress bar
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: ResponsiveUtils.horizontalPadding(context),
+                vertical: ResponsiveUtils.verticalPadding(context),
+              ),
+              child: ProgressIndicatorBar(currentStep: _currentStep),
             ),
-          ),
+            
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: ResponsiveUtils.defaultPadding(context),
+                  child: _buildStepContent(),
+                ),
+              ),
+            ),
+            
+            // Bottom section with button
+            Container(
+              padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 5)),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: ResponsiveUtils.buttonHeight(context),
+                    child: ElevatedButton(
+                      onPressed: _nextStep,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGreen,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        '확인',
+                        style: TextStyle(
+                          fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
