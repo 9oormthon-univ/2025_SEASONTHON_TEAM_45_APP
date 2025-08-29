@@ -3,10 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'injection_container.dart' as di;
 import 'presentation/bloc/ble/ble_bloc.dart';
 import 'presentation/views/ble_scan_view.dart';
+import 'core/utils/crypto_utils.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await di.init();
+  
+  // nRF Connect 설정용 해시값 출력
+  CryptoUtils.printHashForNRFConnect();
+  
   runApp(const MyApp());
 }
 

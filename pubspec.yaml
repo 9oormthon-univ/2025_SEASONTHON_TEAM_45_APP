@@ -51,6 +51,12 @@ dependencies:
   
   # 권한 처리
   permission_handler: ^11.1.0
+  
+  # HTTP 통신
+  http: ^1.1.0
+  
+  # 암호화
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:
