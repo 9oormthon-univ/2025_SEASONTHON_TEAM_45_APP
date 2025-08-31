@@ -145,10 +145,10 @@ class _BleScanViewState extends State<BleScanView>
                         children: [
                           Text('조건:', style: TextStyle(fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
-                          Text('✓ SHA-256 검증된 병원 비콘'),
-                          Text('✓ RSSI -50 이상 (가까운 거리)'),
+                          Text('✓ SHA-256 상위 6바이트 검증'),
+                          Text('✓ RSSI -100 이상 (10m 이내)'),
                           SizedBox(height: 8),
-                          Text('nRF Connect에서 해시값을 Device Name에 입력하세요',
+                          Text('nRF Connect에서 5ED4A4459CA1 입력',
                             style: TextStyle(fontSize: 11, color: Colors.grey),
                             textAlign: TextAlign.center),
                         ],

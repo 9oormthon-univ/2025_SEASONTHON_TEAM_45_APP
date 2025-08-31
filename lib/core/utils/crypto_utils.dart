@@ -5,26 +5,37 @@ class CryptoUtils {
   static const String hospitalId = 'Goormhospital';
   static const String password = '123456';
   
-  // Goormhospital123456을 SHA-256으로 해싱
-  static String getExpectedHash() {
+  // SHA-256 해시의 상위 6바이트만 사용
+  static String getExpectedHashPrefix() {
     final bytes = utf8.encode('$hospitalId$password');
     final digest = sha256.convert(bytes);
-    return digest.toString();
+    final fullHash = digest.toString();
+    // 상위 6바이트 = 12자리 hex string
+    return fullHash.substring(0, 12).toUpperCase();
   }
   
-  // 수신된 데이터를 검증
-  static bool verifyHospitalBeacon(String receivedData) {
-    final expectedHash = getExpectedHash();
-    return receivedData.toLowerCase() == expectedHash.toLowerCase();
+  // 병원 비콘 검증 (상위 6바이트만 비교)
+  static bool verifyHospitalBeacon(String? deviceName) {
+    if (deviceName == null || deviceName.isEmpty) return false;
+    
+    final expectedPrefix = getExpectedHashPrefix();
+    final deviceNameUpper = deviceName.toUpperCase();
+    
+    print('[CryptoUtils] Expected: $expectedPrefix');
+    print('[CryptoUtils] Device: $deviceNameUpper');
+    print('[CryptoUtils] Match: ${deviceNameUpper.startsWith(expectedPrefix)}');
+    
+    // 디바이스 이름이 예상 해시 prefix로 시작하는지 확인
+    return deviceNameUpper.startsWith(expectedPrefix);
   }
   
-  // 디버그용 해시값 출력
   static void printHashForNRFConnect() {
-    final hash = getExpectedHash();
-    print('========================================');
-    print('nRF Connect 설정용 해시값');
-    print('Device Name에 입력: $hash');
-    print('또는 Manufacturer Data에 입력');
-    print('========================================');
+    final prefix = getExpectedHashPrefix();
+    print('====================================');
+    print('[nRF Connect 설정]');
+    print('Complete Local Name에 입력할 값:');
+    print(prefix);
+    print('(SHA-256 해시 상위 6바이트)');
+    print('====================================');
   }
 }
