@@ -2,7 +2,17 @@
 class AuthStorage {
   static final AuthStorage _instance = AuthStorage._internal();
   factory AuthStorage() => _instance;
-  AuthStorage._internal();
+  AuthStorage._internal() {
+    // 테스트 계정 추가
+    _users['01055338237'] = {
+      'name': '테스트 사용자',
+      'password': 'jack8237!!',
+      'year': 1990,
+      'month': 1,
+      'day': 1,
+      'gender': '남성',
+    };
+  }
   
   // 회원 정보 저장
   final Map<String, Map<String, dynamic>> _users = {};
@@ -48,6 +58,10 @@ class AuthStorage {
   
   // 현재 사용자 확인
   bool get isLoggedIn => _currentUser != null;
+  
+  // 현재 사용자 정보 가져오기
+  Map<String, dynamic>? get currentUser => 
+      _currentUser != null ? _users[_currentUser] : null;
   
   // 사용자 정보 가져오기
   Map<String, dynamic>? getCurrentUser() {

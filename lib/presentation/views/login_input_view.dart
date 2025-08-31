@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
-import '../../data/auth_storage.dart';
+import '../../injection_container.dart';
+import '../bloc/auth/auth_bloc.dart';
+import '../bloc/auth/auth_event.dart';
+import '../bloc/auth/auth_state.dart';
 import 'signup_view.dart';
 import 'permission_settings_view.dart';
 
@@ -16,66 +20,58 @@ class _LoginInputViewState extends State<LoginInputView> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  String? _errorMessage;
+  late AuthBloc _authBloc;
 
+  @override
+  void initState() {
+    super.initState();
+    _authBloc = sl<AuthBloc>();
+  }
+  
   @override
   void dispose() {
     _phoneController.dispose();
     _passwordController.dispose();
+    _authBloc.close();
     super.dispose();
   }
 
   void _handleLogin() {
-    setState(() {
-      _errorMessage = null;
-    });
-    
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-      
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          // AuthStorage를 사용하여 로그인 확인
-          bool loginSuccess = AuthStorage().login(
-            _phoneController.text,
-            _passwordController.text,
-          );
-          
-          setState(() {
-            _isLoading = false;
-          });
-          
-          if (loginSuccess) {
-            // 로그인 성공 - 권한 설정 화면으로 이동
+      _authBloc.add(LoginRequested(
+        phoneNumber: _phoneController.text,
+        password: _passwordController.text,
+        autoLogin: true,  // 항상 자동 로그인 활성화
+      ));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => _authBloc,
+      child: BlocConsumer<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is Authenticated) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => const PermissionSettingsView(),
               ),
             );
-          } else {
-            // 로그인 실패
-            setState(() {
-              _errorMessage = '전화번호 또는 비밀번호가 일치하지 않습니다.';
-            });
           }
-        }
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundWhite,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: ResponsiveUtils.defaultPadding(context),
-            child: Column(
+        },
+        builder: (context, state) {
+          final isLoading = state is AuthLoading;
+          final errorMessage = state is AuthError ? state.message : null;
+          
+          return Scaffold(
+            backgroundColor: AppColors.backgroundWhite,
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: ResponsiveUtils.defaultPadding(context),
+                  child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
@@ -127,7 +123,7 @@ class _LoginInputViewState extends State<LoginInputView> {
                         height: ResponsiveUtils.inputFieldHeight(context),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: _errorMessage != null ? AppColors.error : AppColors.grayLight,
+                            color: errorMessage != null ? AppColors.error : AppColors.grayLight,
                             width: 1,
                           ),
                           borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
@@ -176,7 +172,7 @@ class _LoginInputViewState extends State<LoginInputView> {
                         height: ResponsiveUtils.inputFieldHeight(context),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: _errorMessage != null ? AppColors.error : AppColors.grayLight,
+                            color: errorMessage != null ? AppColors.error : AppColors.grayLight,
                             width: 1,
                           ),
                           borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
@@ -209,10 +205,10 @@ class _LoginInputViewState extends State<LoginInputView> {
                         ),
                       ),
                       
-                      if (_errorMessage != null) ...[
+                      if (errorMessage != null) ...[
                         SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
                         Text(
-                          _errorMessage!,
+                          errorMessage,
                           style: TextStyle(
                             fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
                             fontWeight: FontWeight.w400,
@@ -231,7 +227,7 @@ class _LoginInputViewState extends State<LoginInputView> {
                   width: double.infinity,
                   height: ResponsiveUtils.buttonHeight(context),
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
+                    onPressed: isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryGreen,
                       foregroundColor: Colors.white,
@@ -240,7 +236,7 @@ class _LoginInputViewState extends State<LoginInputView> {
                       ),
                       elevation: 0,
                     ),
-                    child: _isLoading
+                    child: isLoading
                         ? SizedBox(
                             width: ResponsiveUtils.iconSize(context, IconSizeType.small),
                             height: ResponsiveUtils.iconSize(context, IconSizeType.small),
@@ -314,6 +310,9 @@ class _LoginInputViewState extends State<LoginInputView> {
             ),
           ),
         ),
+      ),
+    );
+        },
       ),
     );
   }

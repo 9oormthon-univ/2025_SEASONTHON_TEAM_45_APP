@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
-import '../../data/auth_storage.dart';
+import '../../injection_container.dart';
+import '../bloc/auth/auth_bloc.dart';
+import '../bloc/auth/auth_event.dart';
+import '../bloc/auth/auth_state.dart';
 import '../widgets/progress_indicator_bar.dart';
 import 'login_initial_view.dart';
+import 'permission_settings_view.dart';
 
 class SignupView extends StatefulWidget {
   const SignupView({super.key});
@@ -30,6 +35,7 @@ class _SignupViewState extends State<SignupView> {
   
   // Step 4 - Password
   final _passwordController = TextEditingController();
+  late AuthBloc _authBloc;
   bool _isPasswordValid = false;
   bool _hasMinLength = false;
   bool _hasLetter = false;
@@ -37,10 +43,17 @@ class _SignupViewState extends State<SignupView> {
   bool _hasSpecialChar = false;
 
   @override
+  void initState() {
+    super.initState();
+    _authBloc = sl<AuthBloc>();
+  }
+  
+  @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
+    _authBloc.close();
     super.dispose();
   }
 
@@ -84,35 +97,25 @@ class _SignupViewState extends State<SignupView> {
           _currentStep++;
         });
       } else {
-        // 회원가입 정보 저장
-        AuthStorage().register(
-          name: _nameController.text,
-          phone: _phoneController.text,
-          password: _passwordController.text,
-          year: _selectedYear!,
-          month: _selectedMonth!,
-          day: _selectedDay!,
-          gender: _selectedGender!,
-        );
-        
-        // 로그인 화면으로 이동
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const LoginInitialView(),
-          ),
-          (route) => false,
-        );
-        
-        // 회원가입 완료 메시지
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('회원가입이 완료되었습니다. 로그인해주세요.'),
-            backgroundColor: AppColors.primaryGreen,
-          ),
-        );
+        // 회원가입 처리
+        _handleSignup();
       }
     }
+  }
+  
+  void _handleSignup() {
+    // 생년월일 포맷팅 (YYYYMMDD)
+    String birthDate = '${_selectedYear!.toString().padLeft(4, '0')}';
+    birthDate += '${_selectedMonth!.toString().padLeft(2, '0')}';
+    birthDate += '${_selectedDay!.toString().padLeft(2, '0')}';
+    
+    _authBloc.add(RegisterRequested(
+      name: _nameController.text,
+      gender: _selectedGender!,
+      birthDate: birthDate,
+      phoneNumber: _phoneController.text,
+      password: _passwordController.text,
+    ));
   }
 
   Widget _buildStepContent() {
@@ -823,11 +826,36 @@ class _SignupViewState extends State<SignupView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundWhite,
-      body: SafeArea(
-        child: Column(
-          children: [
+    return BlocProvider(
+      create: (context) => _authBloc,
+      child: BlocConsumer<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is Authenticated) {
+            // 회원가입 성공 - 권한 설정 화면으로 이동
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PermissionSettingsView(),
+              ),
+              (route) => false,
+            );
+          } else if (state is AuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state is AuthLoading;
+          
+          return Scaffold(
+            backgroundColor: AppColors.backgroundWhite,
+            body: SafeArea(
+              child: Column(
+                children: [
             // Header with progress bar
             Padding(
               padding: EdgeInsets.symmetric(
@@ -856,7 +884,7 @@ class _SignupViewState extends State<SignupView> {
                     width: double.infinity,
                     height: ResponsiveUtils.buttonHeight(context),
                     child: ElevatedButton(
-                      onPressed: _nextStep,
+                      onPressed: isLoading ? null : _nextStep,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryGreen,
                         foregroundColor: Colors.white,
@@ -865,7 +893,16 @@ class _SignupViewState extends State<SignupView> {
                         ),
                         elevation: 0,
                       ),
-                      child: Text(
+                      child: isLoading && _currentStep == 4
+                          ? SizedBox(
+                              width: ResponsiveUtils.iconSize(context, IconSizeType.small),
+                              height: ResponsiveUtils.iconSize(context, IconSizeType.small),
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
                         '확인',
                         style: TextStyle(
                           fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
@@ -879,6 +916,9 @@ class _SignupViewState extends State<SignupView> {
             ),
           ],
         ),
+      ),
+    );
+        },
       ),
     );
   }

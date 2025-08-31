@@ -24,3 +24,11 @@ class ScanFailure extends Failure {
 class UnknownFailure extends Failure {
   const UnknownFailure() : super('알 수 없는 오류가 발생했습니다');
 }
+
+class ServerFailure extends Failure {
+  const ServerFailure(super.message);
+}
+
+class CacheFailure extends Failure {
+  const CacheFailure(super.message);
+}

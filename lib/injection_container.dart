@@ -1,9 +1,19 @@
 import 'package:get_it/get_it.dart';
+import 'data/auth_storage.dart';
 import 'data/datasources/ble_remote_datasource.dart';
+import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/ble_repository_impl.dart';
+import 'data/services/auth_service.dart';
+import 'domain/repositories/auth_repository.dart';
 import 'domain/repositories/ble_repository.dart';
+import 'domain/usecases/auto_login.dart';
+import 'domain/usecases/login.dart';
+import 'domain/usecases/logout.dart';
+import 'domain/usecases/register.dart';
 import 'domain/usecases/scan_ble_devices.dart';
+import 'domain/usecases/set_auto_login.dart';
 import 'domain/usecases/start_scan.dart';
+import 'presentation/bloc/auth/auth_bloc.dart';
 import 'presentation/bloc/ble/ble_bloc.dart';
 
 final sl = GetIt.instance;
@@ -17,18 +27,49 @@ Future<void> init() async {
       repository: sl(),
     ),
   );
+  
+  sl.registerFactory(
+    () => AuthBloc(
+      login: sl(),
+      register: sl(),
+      autoLogin: sl(),
+      logout: sl(),
+      setAutoLogin: sl(),
+    ),
+  );
 
-  // Use cases
+  // Use cases - BLE
   sl.registerLazySingleton(() => ScanBleDevices(sl()));
   sl.registerLazySingleton(() => StartScan(sl()));
+  
+  // Use cases - Auth
+  sl.registerLazySingleton(() => Login(sl()));
+  sl.registerLazySingleton(() => Register(sl()));
+  sl.registerLazySingleton(() => AutoLogin(sl()));
+  sl.registerLazySingleton(() => Logout(sl()));
+  sl.registerLazySingleton(() => SetAutoLogin(sl()));
 
   // Repository
   sl.registerLazySingleton<BleRepository>(
     () => BleRepositoryImpl(remoteDataSource: sl()),
+  );
+  
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      authService: sl(),
+      authStorage: sl(),
+    ),
   );
 
   // Data sources
   sl.registerLazySingleton<BleRemoteDataSource>(
     () => BleRemoteDataSourceImpl(),
   );
+  
+  // Services
+  sl.registerLazySingleton(() => AuthService());
+  sl.registerLazySingleton(() => AuthStorage());
+  
+  // Initialize auth service
+  await sl<AuthService>().init();
 }
