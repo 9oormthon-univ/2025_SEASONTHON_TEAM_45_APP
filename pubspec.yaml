@@ -58,6 +58,9 @@ dependencies:
   # 권한 처리
   permission_handler: ^11.1.0
   
+  # SVG 이미지 렌더링
+  flutter_svg: ^2.0.10
+  
   # HTTP 통신
   http: ^1.1.0
   

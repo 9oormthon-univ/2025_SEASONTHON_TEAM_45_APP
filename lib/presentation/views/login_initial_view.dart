@@ -47,7 +47,7 @@ class LoginInitialView extends StatelessWidget {
               Text(
                 '케어프리패스',
                 style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.xxl),
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.xxxl),
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryGreen,
                 ),
@@ -117,7 +117,7 @@ class LoginInitialView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primaryGreen,
+                    color: AppColors.textSecondary,
                     decoration: TextDecoration.underline,
                   ),
                 ),

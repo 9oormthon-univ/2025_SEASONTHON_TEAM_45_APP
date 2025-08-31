@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../injection_container.dart';
@@ -77,15 +79,45 @@ class _LoginInputViewState extends State<LoginInputView> {
                 SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
                 
                 // Back button
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: Icon(
-                    Icons.arrow_back_ios,
-                    size: ResponsiveUtils.iconSize(context, IconSizeType.small),
-                    color: AppColors.textPrimary,
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(ResponsiveUtils.widthPercent(context, 6)),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                      child: Container(
+                        width: ResponsiveUtils.widthPercent(context, 12),
+                        height: ResponsiveUtils.widthPercent(context, 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(ResponsiveUtils.widthPercent(context, 6)),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 16,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 0),
+                            ),
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 8,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.black,
+                          size: 20,
+                        ),
+                      ),
+                    ),
                   ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
                 ),
                 
                 SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
@@ -95,7 +127,7 @@ class _LoginInputViewState extends State<LoginInputView> {
                   child: Text(
                     '케어프리패스',
                     style: TextStyle(
-                      fontSize: ResponsiveUtils.fontSize(context, FontSize.xxl),
+                      fontSize: ResponsiveUtils.fontSize(context, FontSize.xxxl),
                       fontWeight: FontWeight.w700,
                       color: AppColors.primaryGreen,
                     ),
@@ -128,31 +160,34 @@ class _LoginInputViewState extends State<LoginInputView> {
                           ),
                           borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
                         ),
-                        child: TextFormField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          style: TextStyle(
-                            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: '휴대폰번호를 입력하세요',
-                            hintStyle: TextStyle(
-                              color: AppColors.textHint,
+                        child: Center(
+                          child: TextFormField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            style: TextStyle(
                               fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
                               fontWeight: FontWeight.w400,
                             ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: ResponsiveUtils.widthPercent(context, 4),
+                            decoration: InputDecoration(
+                              hintText: '휴대폰번호를 입력하세요',
+                              hintStyle: TextStyle(
+                                color: AppColors.textHint,
+                                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                                fontWeight: FontWeight.w400,
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: ResponsiveUtils.widthPercent(context, 4),
+                                vertical: 0,
+                              ),
                             ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return '전화번호를 입력해주세요';
+                              }
+                              return null;
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return '전화번호를 입력해주세요';
-                            }
-                            return null;
-                          },
                         ),
                       ),
                       
@@ -177,31 +212,34 @@ class _LoginInputViewState extends State<LoginInputView> {
                           ),
                           borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
                         ),
-                        child: TextFormField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          style: TextStyle(
-                            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: '비밀번호를 입력하세요',
-                            hintStyle: TextStyle(
-                              color: AppColors.textHint,
+                        child: Center(
+                          child: TextFormField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            style: TextStyle(
                               fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
                               fontWeight: FontWeight.w400,
                             ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: ResponsiveUtils.widthPercent(context, 4),
+                            decoration: InputDecoration(
+                              hintText: '비밀번호를 입력하세요',
+                              hintStyle: TextStyle(
+                                color: AppColors.textHint,
+                                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                                fontWeight: FontWeight.w400,
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: ResponsiveUtils.widthPercent(context, 4),
+                                vertical: 0,
+                              ),
                             ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return '비밀번호를 입력해주세요';
+                              }
+                              return null;
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return '비밀번호를 입력해주세요';
-                            }
-                            return null;
-                          },
                         ),
                       ),
                       
@@ -257,28 +295,11 @@ class _LoginInputViewState extends State<LoginInputView> {
                 
                 SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xxl)),
                 
-                // Forgot password button (optional - if visible in design)
+                // Account question bubble
                 Center(
-                  child: TextButton(
-                    onPressed: () {},
-                    style: TextButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-                        side: BorderSide(color: AppColors.grayLight, width: 1),
-                      ),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: ResponsiveUtils.widthPercent(context, 5),
-                        vertical: ResponsiveUtils.heightPercent(context, 1.5),
-                      ),
-                    ),
-                    child: Text(
-                      '아직 계정이 없으신가요?',
-                      style: TextStyle(
-                        fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
+                  child: SvgPicture.asset(
+                    'assets/images/Bubble.svg',
+                    width: ResponsiveUtils.widthPercent(context, 42),
                   ),
                 ),
                 
@@ -300,7 +321,7 @@ class _LoginInputViewState extends State<LoginInputView> {
                       style: TextStyle(
                         fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
                         fontWeight: FontWeight.w600,
-                        color: AppColors.primaryGreen,
+                        color: AppColors.textSecondary,
                         decoration: TextDecoration.underline,
                       ),
                     ),

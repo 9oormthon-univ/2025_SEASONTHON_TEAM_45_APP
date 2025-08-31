@@ -56,7 +56,7 @@ class AuthRepositoryImpl implements AuthRepository {
           refreshToken: 'local_refresh_token',
         ));
       } else {
-        return const Left(ServerFailure('전화번호 또는 비밀번호가 일치하지 않습니다.'));
+        return const Left(ServerFailure('휴대폰 번호 혹은 비밀번호가 틀립니다.'));
       }
     } catch (e) {
       return const Left(ServerFailure('로그인 중 오류가 발생했습니다.'));

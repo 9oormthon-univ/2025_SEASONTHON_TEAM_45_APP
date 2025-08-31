@@ -177,25 +177,28 @@ class _SignupViewState extends State<SignupView> {
             border: Border.all(color: AppColors.grayLight),
             borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
           ),
-          child: TextField(
-            controller: _nameController,
-            keyboardType: TextInputType.text,
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-              fontWeight: FontWeight.w400,
-            ),
-            decoration: InputDecoration(
-              hintText: '홍길동',
-              hintStyle: TextStyle(
-                color: AppColors.textHint,
+          child: Center(
+            child: TextField(
+              controller: _nameController,
+              keyboardType: TextInputType.text,
+              style: TextStyle(
                 fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                fontWeight: FontWeight.w400,
               ),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: ResponsiveUtils.widthPercent(context, 4),
+              decoration: InputDecoration(
+                hintText: '홍길동',
+                hintStyle: TextStyle(
+                  color: AppColors.textHint,
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                ),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.widthPercent(context, 4),
+                  vertical: 0,
+                ),
               ),
+              onChanged: (_) => setState(() {}),
             ),
-            onChanged: (_) => setState(() {}),
           ),
         ),
         SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
@@ -498,26 +501,29 @@ class _SignupViewState extends State<SignupView> {
             border: Border.all(color: AppColors.grayLight),
             borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
           ),
-          child: TextField(
-            controller: _phoneController,
-            keyboardType: TextInputType.phone,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-              fontWeight: FontWeight.w400,
-            ),
-            decoration: InputDecoration(
-              hintText: '01012341234',
-              hintStyle: TextStyle(
-                color: AppColors.textHint,
+          child: Center(
+            child: TextField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              style: TextStyle(
                 fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                fontWeight: FontWeight.w400,
               ),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: ResponsiveUtils.widthPercent(context, 4),
+              decoration: InputDecoration(
+                hintText: '01012341234',
+                hintStyle: TextStyle(
+                  color: AppColors.textHint,
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                ),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.widthPercent(context, 4),
+                  vertical: 0,
+                ),
               ),
+              onChanged: (_) => setState(() {}),
             ),
-            onChanged: (_) => setState(() {}),
           ),
         ),
         
@@ -649,26 +655,29 @@ class _SignupViewState extends State<SignupView> {
             border: Border.all(color: AppColors.grayLight),
             borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
           ),
-          child: TextField(
-            controller: _passwordController,
-            obscureText: true,
-            keyboardType: TextInputType.text,
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-              fontWeight: FontWeight.w400,
-            ),
-            decoration: InputDecoration(
-              hintText: '••••••••',
-              hintStyle: TextStyle(
-                color: AppColors.textHint,
+          child: Center(
+            child: TextField(
+              controller: _passwordController,
+              obscureText: true,
+              keyboardType: TextInputType.text,
+              style: TextStyle(
                 fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                fontWeight: FontWeight.w400,
               ),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: ResponsiveUtils.widthPercent(context, 4),
+              decoration: InputDecoration(
+                hintText: '••••••••',
+                hintStyle: TextStyle(
+                  color: AppColors.textHint,
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                ),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.widthPercent(context, 4),
+                  vertical: 0,
+                ),
               ),
+              onChanged: _validatePassword,
             ),
-            onChanged: _validatePassword,
           ),
         ),
         

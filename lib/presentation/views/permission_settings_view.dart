@@ -248,9 +248,9 @@ class _PermissionSettingsViewState extends State<PermissionSettingsView>
               Text(
                 '아래 권한을 확인해 주세요.',
                 style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.textSecondary,
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
               
