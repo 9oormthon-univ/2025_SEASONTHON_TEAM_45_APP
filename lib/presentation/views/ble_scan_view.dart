@@ -19,8 +19,8 @@ class _BleScanViewState extends State<BleScanView>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // 초기화 후 잠시 대기
-    Future.delayed(const Duration(milliseconds: 500), () {
+    // 페이지 진입 시 자동으로 권한 확인 및 스캔 시작
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<BleBloc>().add(CheckPermissions());
       }
@@ -91,13 +91,18 @@ class _BleScanViewState extends State<BleScanView>
                 children: [
                   const Icon(Icons.lock, size: 64),
                   const SizedBox(height: 16),
-                  const Text('권한이 필요합니다'),
+                  const Text('블루투스 및 위치 권한이 필요합니다'),
                   const SizedBox(height: 8),
-                  ElevatedButton(
+                  const Text('BLE 기기 스캔을 위해 권한을 허용해주세요',
+                    style: TextStyle(fontSize: 14, color: Colors.grey)),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
                     onPressed: () {
+                      // 권한 다시 요청
                       context.read<BleBloc>().add(CheckPermissions());
                     },
-                    child: const Text('권한 요청'),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('권한 다시 요청'),
                   ),
                 ],
               ),

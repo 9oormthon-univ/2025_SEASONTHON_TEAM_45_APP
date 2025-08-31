@@ -157,11 +157,41 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
   @override
   Future<bool> requestPermissions() async {
     if (Platform.isIOS) {
-      // iOS에서는 블루투스와 위치 권한만 필요
-      final bluetooth = await Permission.bluetooth.request();
+      // iOS에서 위치 권한 먼저 요청
       final locationWhenInUse = await Permission.locationWhenInUse.request();
       
-      return bluetooth.isGranted && locationWhenInUse.isGranted;
+      // 블루투스 권한 상태 확인 (iOS는 Permission.bluetooth만 지원!)
+      final bluetoothStatus = await Permission.bluetooth.status;
+      
+      // 블루투스 권한이 아직 요청되지 않았거나 거부된 경우
+      if (!bluetoothStatus.isGranted && !bluetoothStatus.isPermanentlyDenied) {
+        try {
+          // FlutterBluePlus의 어댑터 상태 확인으로 권한 팝업 트리거
+          // iOS에서는 이 호출이 자동으로 권한 팝업을 표시함
+          final adapterState = await FlutterBluePlus.adapterState.first;
+          
+          if (adapterState == BluetoothAdapterState.on) {
+            // 블루투스가 켜져 있으면 짧은 스캔으로 권한 팝업 확실히 트리거
+            try {
+              await FlutterBluePlus.startScan(timeout: const Duration(milliseconds: 100));
+              await FlutterBluePlus.stopScan();
+            } catch (e) {
+              // 권한이 없으면 스캔 실패 - 정상적인 동작
+            }
+          }
+          
+          // 잠시 대기 후 권한 상태 재확인
+          await Future.delayed(const Duration(milliseconds: 500));
+          final newBluetoothStatus = await Permission.bluetooth.status;  // iOS는 bluetooth!
+          
+          return newBluetoothStatus.isGranted && locationWhenInUse.isGranted;
+        } catch (e) {
+          // 권한 요청 중 오류 발생
+          return false;
+        }
+      }
+      
+      return bluetoothStatus.isGranted && locationWhenInUse.isGranted;
     } else if (Platform.isAndroid) {
       // Android에서는 블루투스 스캔/연결 권한
       final bluetoothScan = await Permission.bluetoothScan.request();

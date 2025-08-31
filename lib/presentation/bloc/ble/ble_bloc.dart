@@ -41,10 +41,15 @@ class BleBloc extends Bloc<BleEvent, BleState> {
             (failure) => emit(BlePermissionDenied()),
             (granted) {
               if (granted) {
+                // 권한이 허용되면 자동으로 스캔 시작
                 add(StartBleScan());
+              } else {
+                emit(BlePermissionDenied());
               }
             },
           );
+        } else {
+          emit(BleBluetoothOff());
         }
       },
     );
