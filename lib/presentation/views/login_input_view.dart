@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../../data/auth_storage.dart';
 import 'signup_view.dart';
+import 'permission_settings_view.dart';
 
 class LoginInputView extends StatefulWidget {
   const LoginInputView({super.key});
@@ -34,12 +36,32 @@ class _LoginInputViewState extends State<LoginInputView> {
         _isLoading = true;
       });
       
-      Future.delayed(const Duration(seconds: 2), () {
+      Future.delayed(const Duration(seconds: 1), () {
         if (mounted) {
+          // AuthStorage를 사용하여 로그인 확인
+          bool loginSuccess = AuthStorage().login(
+            _phoneController.text,
+            _passwordController.text,
+          );
+          
           setState(() {
             _isLoading = false;
           });
-          Navigator.pushReplacementNamed(context, '/permission_check');
+          
+          if (loginSuccess) {
+            // 로그인 성공 - 권한 설정 화면으로 이동
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PermissionSettingsView(),
+              ),
+            );
+          } else {
+            // 로그인 실패
+            setState(() {
+              _errorMessage = '전화번호 또는 비밀번호가 일치하지 않습니다.';
+            });
+          }
         }
       });
     }
