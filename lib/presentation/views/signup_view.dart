@@ -9,7 +9,6 @@ import '../bloc/auth/auth_event.dart';
 import '../bloc/auth/auth_state.dart';
 import '../widgets/progress_indicator_bar.dart';
 import 'login_initial_view.dart';
-import 'permission_settings_view.dart';
 
 class SignupView extends StatefulWidget {
   const SignupView({super.key});
@@ -142,24 +141,7 @@ class _SignupViewState extends State<SignupView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '처음 오셨군요!',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-        Text(
-          '이름과 생년월일을 입력해 주세요.',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-            fontWeight: FontWeight.w400,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+        _buildStepDescription('환영합니다!\n이름과 생년월일을 입력해 주세요.'),
         
         // Name input field
         Text(
@@ -308,24 +290,7 @@ class _SignupViewState extends State<SignupView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '처음 오셨군요!',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-        Text(
-          '성별을 입력해 주세요.',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-            fontWeight: FontWeight.w400,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+        _buildStepDescription('안녕하세요!\n성별을 선택해 주세요.'),
         
         Text(
           '성별',
@@ -466,24 +431,7 @@ class _SignupViewState extends State<SignupView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '본인 휴대번호로',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-        Text(
-          '회원가입을 진행해 주세요.',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-            fontWeight: FontWeight.w400,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+        _buildStepDescription('전화번호를 입력한 후\n인증번호를 전송해 주세요.'),
         
         Text(
           '전화번호',
@@ -527,91 +475,8 @@ class _SignupViewState extends State<SignupView> {
           ),
         ),
         
-        // Show previous info (순서: 성별 - 이름 - 생년월일)
-        if (_selectedGender != null) ...[
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-          Text(
-            '성별',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 4)),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundGray,
-              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
-            ),
-            child: Text(
-              _selectedGender!,
-              style: TextStyle(
-                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                fontWeight: FontWeight.w400,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-        ],
-        if (_nameController.text.isNotEmpty) ...[
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-          Text(
-            '이름',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 4)),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundGray,
-              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
-            ),
-            child: Text(
-              _nameController.text,
-              style: TextStyle(
-                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                fontWeight: FontWeight.w400,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-        ],
-        if (_selectedYear != null && _selectedMonth != null && _selectedDay != null) ...[
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-          Text(
-            '생년월일',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 4)),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundGray,
-              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
-            ),
-            child: Text(
-              '$_selectedYear년 $_selectedMonth월 $_selectedDay일',
-              style: TextStyle(
-                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                fontWeight: FontWeight.w400,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-        ],
+        // Show previous info
+        ..._buildPreviousStepInfo(),
       ],
     );
   }
@@ -620,24 +485,7 @@ class _SignupViewState extends State<SignupView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '비밀번호를 입력해 주세요.',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-        Text(
-          '영어, 대소문자로 8자 이상입니다.',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-            fontWeight: FontWeight.w400,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+        _buildStepDescription('비밀번호를 입력해 주세요.\n영어, 대소문자로 8자 이상입니다.'),
         
         Text(
           '비밀번호',
@@ -716,121 +564,161 @@ class _SignupViewState extends State<SignupView> {
           ],
         ),
         
-        // Show previous info (순서: 전화번호 - 성별 - 이름 - 생년월일)
-        if (_phoneController.text.isNotEmpty) ...[
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-          Text(
-            '전화번호',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 4)),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundGray,
-              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
-            ),
-            child: Text(
-              _phoneController.text,
-              style: TextStyle(
-                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                fontWeight: FontWeight.w400,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-        ],
-        if (_selectedGender != null) ...[
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-          Text(
-            '성별',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 4)),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundGray,
-              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
-            ),
-            child: Text(
-              _selectedGender!,
-              style: TextStyle(
-                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                fontWeight: FontWeight.w400,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-        ],
-        if (_nameController.text.isNotEmpty) ...[
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-          Text(
-            '이름',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 4)),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundGray,
-              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
-            ),
-            child: Text(
-              _nameController.text,
-              style: TextStyle(
-                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                fontWeight: FontWeight.w400,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-        ],
-        if (_selectedYear != null && _selectedMonth != null && _selectedDay != null) ...[
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-          Text(
-            '생년월일',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 4)),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundGray,
-              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
-            ),
-            child: Text(
-              '$_selectedYear년 $_selectedMonth월 $_selectedDay일',
-              style: TextStyle(
-                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                fontWeight: FontWeight.w400,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-        ],
+        // Show previous info
+        ..._buildPreviousStepInfo(),
       ],
     );
+  }
+
+  // 공통 위젯: 스텝 설명 텍스트
+  Widget _buildStepDescription(String text) {
+    return Column(
+      children: [
+        Center(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+              height: 1.4,
+            ),
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+      ],
+    );
+  }
+
+  // 공통 위젯: 정보 표시 필드
+  Widget _buildInfoDisplay(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(ResponsiveUtils.widthPercent(context, 4)),
+          decoration: BoxDecoration(
+            color: AppColors.backgroundGray,
+            borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              fontWeight: FontWeight.w400,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 공통 위젯: 성별 표시
+  Widget _buildGenderDisplay() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+        Text(
+          '성별',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: ResponsiveUtils.inputFieldHeight(context),
+                decoration: BoxDecoration(
+                  color: _selectedGender == '남자' ? AppColors.primaryGreen : Colors.white,
+                  border: Border.all(
+                    color: _selectedGender == '남자' ? AppColors.primaryGreen : AppColors.grayLight,
+                  ),
+                  borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                ),
+                child: Center(
+                  child: Text(
+                    '남자',
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                      fontWeight: FontWeight.w500,
+                      color: _selectedGender == '남자' ? Colors.white : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: ResponsiveUtils.spacing(context, SpacingSize.md)),
+            Expanded(
+              child: Container(
+                height: ResponsiveUtils.inputFieldHeight(context),
+                decoration: BoxDecoration(
+                  color: _selectedGender == '여자' ? AppColors.primaryGreen : Colors.white,
+                  border: Border.all(
+                    color: _selectedGender == '여자' ? AppColors.primaryGreen : AppColors.grayLight,
+                  ),
+                  borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                ),
+                child: Center(
+                  child: Text(
+                    '여자',
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                      fontWeight: FontWeight.w500,
+                      color: _selectedGender == '여자' ? Colors.white : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // 공통 위젯: 이전 단계 정보 표시
+  List<Widget> _buildPreviousStepInfo() {
+    final widgets = <Widget>[];
+    
+    // Step 3, 4에서 성별 표시
+    if (_currentStep >= 3 && _selectedGender != null) {
+      widgets.add(_buildGenderDisplay());
+    }
+    
+    // Step 3, 4에서 이름 표시
+    if (_currentStep >= 3 && _nameController.text.isNotEmpty) {
+      widgets.add(_buildInfoDisplay('이름', _nameController.text));
+    }
+    
+    // Step 3, 4에서 생년월일 표시
+    if (_currentStep >= 3 && _selectedYear != null && _selectedMonth != null && _selectedDay != null) {
+      widgets.add(_buildInfoDisplay('생년월일', '$_selectedYear년 $_selectedMonth월 $_selectedDay일'));
+    }
+    
+    // Step 4에서 전화번호 표시
+    if (_currentStep == 4 && _phoneController.text.isNotEmpty) {
+      widgets.add(_buildInfoDisplay('전화번호', _phoneController.text));
+    }
+    
+    return widgets;
   }
 
   @override
@@ -840,11 +728,11 @@ class _SignupViewState extends State<SignupView> {
       child: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
-            // 회원가입 성공 - 권한 설정 화면으로 이동
+            // 회원가입 성공 - 로그인 화면으로 이동
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                builder: (context) => const PermissionSettingsView(),
+                builder: (context) => const LoginInitialView(),
               ),
               (route) => false,
             );
