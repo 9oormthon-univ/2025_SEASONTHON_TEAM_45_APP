@@ -3,9 +3,9 @@ class ApiEndpoints {
   static const String baseUrl = 'https://api.carefreepass.com';
   
   // Auth Endpoints
-  static const String login = '/api/v1/auth/patient/sign-in';
-  static const String register = '/api/v1/auth/patient/sign-up';
-  static const String refreshToken = '/api/v1/auth/reissue';
+  static const String login = '$baseUrl/v1/auth/patient/sign-in';
+  static const String register = '$baseUrl/v1/auth/patient/sign-up';
+  static const String refreshToken = '$baseUrl/v1/auth/reissue';
   
   // Patient Endpoints
   static const String patientProfile = '/patient/profile';
@@ -20,6 +20,9 @@ class ApiEndpoints {
   static const String appointmentList = '/appointment/list';
   static const String appointmentDetail = '/appointment/detail';
   static const String cancelAppointment = '/appointment/cancel';
+  
+  // Reservation Endpoints
+  static const String reservations = '/api/v1/reservations';
   
   // BLE/Beacon Endpoints
   static const String reportArrival = '/beacon/arrival';

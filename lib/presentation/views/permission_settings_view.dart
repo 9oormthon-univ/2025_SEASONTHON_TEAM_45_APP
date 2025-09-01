@@ -215,7 +215,7 @@ class _PermissionSettingsViewState extends State<PermissionSettingsView>
   
   void _handleNext() {
     if (_bluetoothPermissionGranted && _notificationPermissionGranted && _locationPermissionGranted) {
-      Navigator.pushReplacementNamed(context, '/ble_scan');
+      Navigator.pushReplacementNamed(context, '/home');
     }
   }
 

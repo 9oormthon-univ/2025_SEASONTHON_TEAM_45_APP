@@ -8,6 +8,8 @@ import 'presentation/views/login_input_view.dart';
 import 'presentation/views/signup_view.dart';
 import 'presentation/views/permission_settings_view.dart';
 import 'presentation/views/ble_scan_view.dart';
+import 'presentation/views/home_view.dart';
+import 'presentation/bloc/reservation/reservation_bloc.dart';
 import 'core/utils/crypto_utils.dart';
 
 void main() async {
@@ -39,6 +41,10 @@ class MyApp extends StatelessWidget {
         '/login_input': (context) => const LoginInputView(),
         '/signup': (context) => const SignupView(),
         '/permission_check': (context) => const PermissionSettingsView(),
+        '/home': (context) => BlocProvider(
+          create: (_) => di.sl<ReservationBloc>(),
+          child: const HomeView(),
+        ),
         '/ble_scan': (context) => BlocProvider(
           create: (_) => di.sl<BleBloc>(),
           child: const BleScanView(),

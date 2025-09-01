@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class ApiService {
   // TODO: 실제 API 엔드포인트로 변경 필요

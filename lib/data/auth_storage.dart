@@ -20,6 +20,10 @@ class AuthStorage {
   // 현재 로그인한 사용자
   String? _currentUser;
   
+  // 토큰 저장
+  String? _accessToken;
+  String? _refreshToken;
+  
   // 회원가입
   void register({
     required String name,
@@ -72,5 +76,27 @@ class AuthStorage {
       };
     }
     return null;
+  }
+  
+  // 토큰 관련 메서드들
+  Future<String?> getAccessToken() async {
+    return _accessToken;
+  }
+  
+  Future<String?> getRefreshToken() async {
+    return _refreshToken;
+  }
+  
+  Future<void> saveAccessToken(String token) async {
+    _accessToken = token;
+  }
+  
+  Future<void> saveRefreshToken(String token) async {
+    _refreshToken = token;
+  }
+  
+  Future<void> clearTokens() async {
+    _accessToken = null;
+    _refreshToken = null;
   }
 }
