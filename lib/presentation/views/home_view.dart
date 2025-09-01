@@ -96,7 +96,7 @@ class _HomeViewState extends State<HomeView> {
           ),
           IconButton(
             onPressed: () {
-              // 설정 화면으로 이동
+              Navigator.pushNamed(context, '/settings');
             },
             icon: const Icon(
               Icons.settings,
