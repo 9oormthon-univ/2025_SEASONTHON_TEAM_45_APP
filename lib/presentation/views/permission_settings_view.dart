@@ -4,9 +4,15 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../widgets/custom_back_button.dart';
 
 class PermissionSettingsView extends StatefulWidget {
-  const PermissionSettingsView({super.key});
+  final bool isFromSettings;
+  
+  const PermissionSettingsView({
+    super.key,
+    this.isFromSettings = false,
+  });
 
   @override
   State<PermissionSettingsView> createState() => _PermissionSettingsViewState();
@@ -215,7 +221,11 @@ class _PermissionSettingsViewState extends State<PermissionSettingsView>
   
   void _handleNext() {
     if (_bluetoothPermissionGranted && _notificationPermissionGranted && _locationPermissionGranted) {
-      Navigator.pushReplacementNamed(context, '/home');
+      if (widget.isFromSettings) {
+        Navigator.pop(context);
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     }
   }
 
@@ -228,31 +238,60 @@ class _PermissionSettingsViewState extends State<PermissionSettingsView>
     return Scaffold(
       backgroundColor: AppColors.backgroundWhite,
       body: SafeArea(
-        child: Padding(
-          padding: ResponsiveUtils.defaultPadding(context),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Spacer(flex: 1),
+        child: Column(
+          children: [
+            // 설정에서 왔을 때만 헤더 표시
+            if (widget.isFromSettings)
+              Padding(
+                padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.md)),
+                child: Row(
+                  children: [
+                    const CustomBackButton(),
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          '권한 설정',
+                          style: TextStyle(
+                            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 48),
+                  ],
+                ),
+              ),
               
-              // Title
-              Text(
-                '원활한 앱 이용을 위해',
-                style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-              Text(
-                '아래 권한을 확인해 주세요.',
-                style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
+            Expanded(
+              child: Padding(
+                padding: ResponsiveUtils.defaultPadding(context),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (!widget.isFromSettings) const Spacer(flex: 1),
+                    
+                    // Title (로그인 후에만 표시)
+                    if (!widget.isFromSettings) ...[
+                      Text(
+                        '원활한 앱 이용을 위해',
+                        style: TextStyle(
+                          fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+                      Text(
+                        '아래 권한을 확인해 주세요.',
+                        style: TextStyle(
+                          fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
               
               SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xxl)),
               
@@ -454,20 +493,28 @@ class _PermissionSettingsViewState extends State<PermissionSettingsView>
                   ),
                 ),
               ),
-              
-              const Spacer(flex: 2),
-              
-              // Next button
-              SizedBox(
+                    
+                    if (!widget.isFromSettings) const Spacer(flex: 2),
+                  ],
+                ),
+              ),
+            ),
+            
+            // Bottom button
+            Padding(
+              padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.md)),
+              child: SizedBox(
                 width: double.infinity,
                 height: ResponsiveUtils.buttonHeight(context),
                 child: ElevatedButton(
-                  onPressed: allPermissionsGranted ? _handleNext : null,
+                  onPressed: widget.isFromSettings 
+                      ? () => Navigator.pop(context)  // 설정에서 왔을 때는 항상 활성화
+                      : (allPermissionsGranted ? _handleNext : null),  // 로그인 후에는 권한 모두 허용시 활성화
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: allPermissionsGranted 
+                    backgroundColor: (widget.isFromSettings || allPermissionsGranted)
                         ? AppColors.primaryGreen 
                         : AppColors.grayLight,
-                    foregroundColor: allPermissionsGranted 
+                    foregroundColor: (widget.isFromSettings || allPermissionsGranted)
                         ? Colors.white 
                         : AppColors.grayMedium,
                     shape: RoundedRectangleBorder(
@@ -476,7 +523,7 @@ class _PermissionSettingsViewState extends State<PermissionSettingsView>
                     elevation: 0,
                   ),
                   child: Text(
-                    '다음으로',
+                    widget.isFromSettings ? '완료' : '다음으로',
                     style: TextStyle(
                       fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
                       fontWeight: FontWeight.w600,
@@ -484,10 +531,8 @@ class _PermissionSettingsViewState extends State<PermissionSettingsView>
                   ),
                 ),
               ),
-              
-              SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

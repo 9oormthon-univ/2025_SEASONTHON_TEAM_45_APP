@@ -3,6 +3,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../data/auth_storage.dart';
 import '../widgets/custom_back_button.dart';
+import 'permission_settings_view.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -115,7 +116,14 @@ class SettingsView extends StatelessWidget {
                     context,
                     title: '권한 설정',
                     onTap: () {
-                      Navigator.pushNamed(context, '/permission_settings');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PermissionSettingsView(
+                            isFromSettings: true,
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ],

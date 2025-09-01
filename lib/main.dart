@@ -11,7 +11,6 @@ import 'presentation/views/ble_scan_view.dart';
 import 'presentation/views/home_view.dart';
 import 'presentation/views/settings_view.dart';
 import 'presentation/views/profile_management_view.dart';
-import 'presentation/views/permission_settings_standalone_view.dart';
 import 'presentation/bloc/reservation/reservation_bloc.dart';
 import 'core/utils/crypto_utils.dart';
 
@@ -50,7 +49,6 @@ class MyApp extends StatelessWidget {
         ),
         '/settings': (context) => const SettingsView(),
         '/profile_management': (context) => const ProfileManagementView(),
-        '/permission_settings': (context) => const PermissionSettingsStandaloneView(),
         '/ble_scan': (context) => BlocProvider(
           create: (_) => di.sl<BleBloc>(),
           child: const BleScanView(),
