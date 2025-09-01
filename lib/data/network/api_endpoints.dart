@@ -2,6 +2,9 @@ class ApiEndpoints {
   // Base URL - 실제 서버 URL
   static const String baseUrl = 'http://13.124.250.98:8080';
   
+  // 개발/테스트용 URL (나중에 삭제 예정)
+  static const String mockUrl = 'https://api.carefreepass.com';
+  
   // Auth Endpoints
   static const String login = '/v1/auth/patient/sign-in';
   static const String register = '/v1/auth/patient/sign-up';

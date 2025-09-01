@@ -1,7 +1,7 @@
 
+import '../network/api_endpoints.dart';
+
 class ApiService {
-  // TODO: 실제 API 엔드포인트로 변경 필요
-  static const String baseUrl = 'https://api.carefreepass.com';
   
   // 환자 도착 알림 POST 요청
   static Future<bool> reportPatientArrival({
@@ -20,7 +20,7 @@ class ApiService {
       
       // TODO: 실제 API 구현
       // final response = await http.post(
-      //   Uri.parse('$baseUrl/patient/arrival'),
+      //   Uri.parse('${ApiEndpoints.baseUrl}/patient/arrival'),
       //   headers: {'Content-Type': 'application/json'},
       //   body: jsonEncode({
       //     'patientId': patientId,

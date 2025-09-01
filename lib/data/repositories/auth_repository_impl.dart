@@ -27,7 +27,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // TODO: 실제 서버 연동 시 false로 변경
       const bool useLocalStorage = true;
       
-      if (!useLocalStorage && ApiEndpoints.baseUrl != 'https://api.carefreepass.com') {
+      if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
         final tokens = await authService.login(
           LoginRequestModel(
             phoneNumber: phoneNumber,
@@ -76,7 +76,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       // 테스트 모드: 로컬 스토리지 사용
       const bool useLocalStorage = true;
-      if (!useLocalStorage && ApiEndpoints.baseUrl != 'https://api.carefreepass.com') {
+      if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
         final tokens = await authService.register(
           RegisterRequestModel(
             name: name,
@@ -135,7 +135,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       // 테스트 모드: 로컬 스토리지 사용
       const bool useLocalStorage = true;
-      if (!useLocalStorage && ApiEndpoints.baseUrl != 'https://api.carefreepass.com') {
+      if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
         final tokens = await authService.refreshAccessToken(refreshToken);
         
         if (tokens != null) {
@@ -185,7 +185,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       // 테스트 모드: 로컬 스토리지 사용
       const bool useLocalStorage = true;
-      if (!useLocalStorage && ApiEndpoints.baseUrl != 'https://api.carefreepass.com') {
+      if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
         final success = await authService.tryAutoLogin();
         if (success) {
           // 자동 로그인 성공 시 토큰이 이미 저장되어 있음
@@ -223,7 +223,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<bool> isLoggedIn() async {
     // 테스트 모드: 로컬 스토리지 사용
     const bool useLocalStorage = true;
-    if (!useLocalStorage && ApiEndpoints.baseUrl != 'https://api.carefreepass.com') {
+    if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
       return await authService.isLoggedIn();
     }
     return authStorage.isLoggedIn;
@@ -233,7 +233,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<String?> getAccessToken() async {
     // 테스트 모드: 로컬 스토리지 사용
     const bool useLocalStorage = true;
-    if (!useLocalStorage && ApiEndpoints.baseUrl != 'https://api.carefreepass.com') {
+    if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
       return await authService.getAccessToken();
     }
     return authStorage.isLoggedIn ? 'local_token' : null;
