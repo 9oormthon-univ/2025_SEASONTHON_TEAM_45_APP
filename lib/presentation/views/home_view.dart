@@ -236,7 +236,7 @@ class _HomeViewState extends State<HomeView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SvgPicture.asset(
-                        'assets/images/Cloud.svg',
+                        'assets/images/Cloud (2).svg',
                         width: 60,
                         height: 60,
                         colorFilter: const ColorFilter.mode(
@@ -339,7 +339,7 @@ class _HomeViewState extends State<HomeView> {
                           child: Column(
                             children: [
                               SvgPicture.asset(
-                                'assets/images/Cloud.svg',
+                                'assets/images/Cloud (1).svg',
                                 width: 60,
                                 height: 60,
                                 colorFilter: const ColorFilter.mode(
@@ -421,24 +421,20 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildStatusIndicator(BuildContext context, dynamic reservation) {
-    IconData icon;
-    Color color;
+    String svgPath;
     String text;
     
     switch (reservation.status) {
       case 'SCHEDULED':
-        icon = Icons.check_circle;
-        color = const Color(0xFFFFB800);
+        svgPath = 'assets/images/상태 아이콘/Vector.svg';
         text = '예약 완료';
         break;
       case 'ARRIVED':
-        icon = Icons.error_outline;
-        color = Colors.red;
-        text = '호출됨';
+        svgPath = 'assets/images/상태 아이콘/DotsThree.svg';
+        text = '대기 중';
         break;
       case 'CALLED':
-        icon = Icons.error_outline;
-        color = Colors.red;
+        svgPath = 'assets/images/상태 아이콘/Frame 2612779.svg';
         text = '호출됨';
         break;
       default:
@@ -447,7 +443,11 @@ class _HomeViewState extends State<HomeView> {
     
     return Row(
       children: [
-        Icon(icon, color: color, size: 24),
+        SvgPicture.asset(
+          svgPath,
+          width: 24,
+          height: 24,
+        ),
         const SizedBox(width: 8),
         Text(
           text,

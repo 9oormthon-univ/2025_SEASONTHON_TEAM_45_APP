@@ -95,6 +95,8 @@ flutter:
   # Assets 설정
   assets:
     - assets/images/
+    - assets/images/상태 아이콘/
+    - assets/images/구름 아이콘/
 
   # Pretendard 폰트 설정
   fonts:
