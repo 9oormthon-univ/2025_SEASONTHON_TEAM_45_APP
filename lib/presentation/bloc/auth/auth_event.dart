@@ -28,6 +28,7 @@ class RegisterRequested extends AuthEvent {
   final String birthDate;
   final String phoneNumber;
   final String password;
+  final String? temporaryToken;
 
   const RegisterRequested({
     required this.name,
@@ -35,10 +36,33 @@ class RegisterRequested extends AuthEvent {
     required this.birthDate,
     required this.phoneNumber,
     required this.password,
+    this.temporaryToken,
   });
 
   @override
-  List<Object> get props => [name, gender, birthDate, phoneNumber, password];
+  List<Object?> get props => [name, gender, birthDate, phoneNumber, password, temporaryToken];
+}
+
+class SendSmsCodeRequested extends AuthEvent {
+  final String phoneNumber;
+  
+  const SendSmsCodeRequested({required this.phoneNumber});
+  
+  @override
+  List<Object> get props => [phoneNumber];
+}
+
+class VerifySmsCodeRequested extends AuthEvent {
+  final String phoneNumber;
+  final String code;
+  
+  const VerifySmsCodeRequested({
+    required this.phoneNumber,
+    required this.code,
+  });
+  
+  @override
+  List<Object> get props => [phoneNumber, code];
 }
 
 class AutoLoginRequested extends AuthEvent {}

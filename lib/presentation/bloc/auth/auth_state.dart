@@ -38,3 +38,30 @@ class AuthError extends AuthState {
   @override
   List<Object> get props => [message];
 }
+
+class SmsCodeSent extends AuthState {
+  final String phoneNumber;
+  
+  const SmsCodeSent(this.phoneNumber);
+  
+  @override
+  List<Object> get props => [phoneNumber];
+}
+
+class SmsCodeVerified extends AuthState {
+  final String temporaryToken;
+  
+  const SmsCodeVerified(this.temporaryToken);
+  
+  @override
+  List<Object> get props => [temporaryToken];
+}
+
+class SmsCodeError extends AuthState {
+  final String message;
+  
+  const SmsCodeError(this.message);
+  
+  @override
+  List<Object> get props => [message];
+}

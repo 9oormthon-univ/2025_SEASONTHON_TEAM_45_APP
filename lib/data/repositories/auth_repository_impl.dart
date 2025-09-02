@@ -23,11 +23,10 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      // 테스트 모드: 로컬 스토리지 사용
-      // TODO: 실제 서버 연동 시 false로 변경
-      const bool useLocalStorage = true;
+      // 실제 백엔드 서버 연동
+      const bool useLocalStorage = false;
       
-      if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
+      if (!useLocalStorage) {
         final tokens = await authService.login(
           LoginRequestModel(
             phoneNumber: phoneNumber,
@@ -66,17 +65,58 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, bool>> sendSmsCode(String phoneNumber) async {
+    try {
+      // 실제 백엔드 서버 연동
+      const bool useLocalStorage = false;
+      if (!useLocalStorage) {
+        final success = await authService.sendSmsCode(phoneNumber);
+        return Right(success);
+      }
+      
+      // 테스트 모드에서는 항상 성공
+      return const Right(true);
+    } catch (e) {
+      return const Left(ServerFailure('SMS 전송에 실패했습니다.'));
+    }
+  }
+  
+  @override
+  Future<Either<Failure, String>> verifySmsCode(String phoneNumber, String code) async {
+    try {
+      // 실제 백엔드 서버 연동
+      const bool useLocalStorage = false;
+      if (!useLocalStorage) {
+        final token = await authService.verifySmsCode(phoneNumber, code);
+        if (token != null) {
+          return Right(token);
+        }
+        return const Left(ServerFailure('인증코드가 일치하지 않습니다.'));
+      }
+      
+      // 테스트 모드에서는 123456이 올바른 코드
+      if (code == '123456') {
+        return const Right('test_temporary_token');
+      }
+      return const Left(ServerFailure('인증코드가 일치하지 않습니다.'));
+    } catch (e) {
+      return const Left(ServerFailure('인증코드 검증 중 오류가 발생했습니다.'));
+    }
+  }
+
+  @override
   Future<Either<Failure, User>> register({
     required String name,
     required String gender,
     required String birthDate,
     required String phoneNumber,
     required String password,
+    String? temporaryToken,
   }) async {
     try {
-      // 테스트 모드: 로컬 스토리지 사용
-      const bool useLocalStorage = true;
-      if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
+      // 실제 백엔드 서버 연동
+      const bool useLocalStorage = false;
+      if (!useLocalStorage) {
         final tokens = await authService.register(
           RegisterRequestModel(
             name: name,
@@ -85,6 +125,7 @@ class AuthRepositoryImpl implements AuthRepository {
             phoneNumber: phoneNumber,
             password: password,
           ),
+          temporaryToken: temporaryToken,
         );
         
         if (tokens != null) {
@@ -133,9 +174,9 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, User>> refreshToken(String refreshToken) async {
     try {
-      // 테스트 모드: 로컬 스토리지 사용
-      const bool useLocalStorage = true;
-      if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
+      // 실제 백엔드 서버 연동
+      const bool useLocalStorage = false;
+      if (!useLocalStorage) {
         final tokens = await authService.refreshAccessToken(refreshToken);
         
         if (tokens != null) {
@@ -183,9 +224,9 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, User?>> tryAutoLogin() async {
     try {
-      // 테스트 모드: 로컬 스토리지 사용
-      const bool useLocalStorage = true;
-      if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
+      // 실제 백엔드 서버 연동
+      const bool useLocalStorage = false;
+      if (!useLocalStorage) {
         final success = await authService.tryAutoLogin();
         if (success) {
           // 자동 로그인 성공 시 토큰이 이미 저장되어 있음
@@ -223,7 +264,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<bool> isLoggedIn() async {
     // 테스트 모드: 로컬 스토리지 사용
     const bool useLocalStorage = true;
-    if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
+    if (!useLocalStorage) {
       return await authService.isLoggedIn();
     }
     return authStorage.isLoggedIn;
@@ -233,7 +274,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<String?> getAccessToken() async {
     // 테스트 모드: 로컬 스토리지 사용
     const bool useLocalStorage = true;
-    if (!useLocalStorage && ApiEndpoints.baseUrl != ApiEndpoints.mockUrl) {
+    if (!useLocalStorage) {
       return await authService.getAccessToken();
     }
     return authStorage.isLoggedIn ? 'local_token' : null;

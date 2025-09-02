@@ -18,6 +18,7 @@ class Register implements UseCase<User, RegisterParams> {
       birthDate: params.birthDate,
       phoneNumber: params.phoneNumber,
       password: params.password,
+      temporaryToken: params.temporaryToken,
     );
   }
 }
@@ -28,6 +29,7 @@ class RegisterParams extends Equatable {
   final String birthDate;
   final String phoneNumber;
   final String password;
+  final String? temporaryToken;
 
   const RegisterParams({
     required this.name,
@@ -35,8 +37,9 @@ class RegisterParams extends Equatable {
     required this.birthDate,
     required this.phoneNumber,
     required this.password,
+    this.temporaryToken,
   });
 
   @override
-  List<Object> get props => [name, gender, birthDate, phoneNumber, password];
+  List<Object?> get props => [name, gender, birthDate, phoneNumber, password, temporaryToken];
 }

@@ -15,6 +15,7 @@ class AuthService {
   static const String _autoLoginKey = 'auto_login';
   static const String _phoneNumberKey = 'phone_number';
   static const String _passwordKey = 'password';
+  static const String _temporaryTokenKey = 'temporary_token';
   
   AuthService() {
     _dio = Dio(BaseOptions(
@@ -93,12 +94,78 @@ class AuthService {
     }
   }
   
-  // 회원가입
-  Future<AuthTokenModel?> register(RegisterRequestModel request) async {
+  // SMS 인증코드 전송
+  Future<bool> sendSmsCode(String phoneNumber) async {
     try {
+      print('SMS 전송 요청 URL: ${_dio.options.baseUrl}${ApiEndpoints.smsSend}');
+      print('요청 데이터: phoneNumber=$phoneNumber');
+      
+      final response = await _dio.post(
+        ApiEndpoints.smsSend,
+        data: {'phoneNumber': phoneNumber},
+      );
+      
+      print('SMS 전송 성공: ${response.data}');
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      print('SMS 전송 실패 - URL: ${e.requestOptions.uri}');
+      print('SMS 전송 실패 - 에러: ${e.message}');
+      print('SMS 전송 실패 - 응답: ${e.response?.data}');
+      print('SMS 전송 실패 - 상태코드: ${e.response?.statusCode}');
+      return false;
+    }
+  }
+  
+  // SMS 인증코드 검증
+  Future<String?> verifySmsCode(String phoneNumber, String code) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.smsVerify,
+        data: {
+          'phoneNumber': phoneNumber,
+          'code': code,
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        final temporaryToken = response.data['data']['temporaryToken'];
+        // 임시 토큰 저장
+        await _prefs.setString(_temporaryTokenKey, temporaryToken);
+        return temporaryToken;
+      }
+      return null;
+    } on DioException catch (e) {
+      print('SMS 검증 실패: ${e.response?.data}');
+      return null;
+    }
+  }
+  
+  // 임시 토큰 가져오기
+  Future<String?> getTemporaryToken() async {
+    return _prefs.getString(_temporaryTokenKey);
+  }
+  
+  // 임시 토큰 삭제
+  Future<void> clearTemporaryToken() async {
+    await _prefs.remove(_temporaryTokenKey);
+  }
+  
+  // 회원가입
+  Future<AuthTokenModel?> register(RegisterRequestModel request, {String? temporaryToken}) async {
+    try {
+      final headers = <String, dynamic>{
+        'Content-Type': 'application/json',
+      };
+      
+      // 임시 토큰이 있으면 헤더에 추가
+      if (temporaryToken != null) {
+        headers['Authorization'] = 'Bearer $temporaryToken';
+      }
+      
       final response = await _dio.post(
         ApiEndpoints.register,
         data: request.toJson(),
+        options: Options(headers: headers),
       );
       
       if (response.statusCode == 200) {

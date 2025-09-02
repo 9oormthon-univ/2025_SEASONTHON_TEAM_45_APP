@@ -3,9 +3,11 @@ class ApiEndpoints {
   static const String baseUrl = 'http://13.124.250.98:8080';
   
   // Auth Endpoints
-  static const String login = '/v1/auth/patient/sign-in';
-  static const String register = '/v1/auth/patient/sign-up';
-  static const String refreshToken = '/v1/auth/reissue';
+  static const String login = '/api/v1/auth/patient/sign-in';
+  static const String register = '/api/v1/auth/patient/sign-up';
+  static const String refreshToken = '/api/v1/auth/reissue';
+  static const String smsSend = '/api/v1/auth/sms/send';
+  static const String smsVerify = '/api/v1/auth/sms/verify';
   
   // Patient Endpoints
   static const String patientProfile = '/patient/profile';

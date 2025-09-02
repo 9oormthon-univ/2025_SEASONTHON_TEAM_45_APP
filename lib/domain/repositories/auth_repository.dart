@@ -14,7 +14,12 @@ abstract class AuthRepository {
     required String birthDate,
     required String phoneNumber,
     required String password,
+    String? temporaryToken,
   });
+  
+  Future<Either<Failure, bool>> sendSmsCode(String phoneNumber);
+  
+  Future<Either<Failure, String>> verifySmsCode(String phoneNumber, String code);
 
   Future<Either<Failure, User>> refreshToken(String refreshToken);
 

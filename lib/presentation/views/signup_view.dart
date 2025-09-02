@@ -32,6 +32,10 @@ class _SignupViewState extends State<SignupView> {
   
   // Step 3 - Phone number
   final _phoneController = TextEditingController();
+  final _verificationCodeController = TextEditingController();
+  bool _isCodeSent = false;
+  bool _isCodeVerified = false;
+  String? _temporaryToken;
   
   // Step 4 - Password
   final _passwordController = TextEditingController();
@@ -52,6 +56,7 @@ class _SignupViewState extends State<SignupView> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _verificationCodeController.dispose();
     _passwordController.dispose();
     _authBloc.close();
     super.dispose();
@@ -81,7 +86,7 @@ class _SignupViewState extends State<SignupView> {
         canProceed = _selectedGender != null;
         break;
       case 3:
-        canProceed = _phoneController.text.isNotEmpty && _phoneController.text.length >= 10;
+        canProceed = _phoneController.text.isNotEmpty && _phoneController.text.length >= 10 && _isCodeVerified;
         break;
       case 4:
         canProceed = _isPasswordValid;
@@ -115,6 +120,7 @@ class _SignupViewState extends State<SignupView> {
       birthDate: birthDate,
       phoneNumber: _phoneController.text,
       password: _passwordController.text,
+      temporaryToken: _temporaryToken,
     ));
   }
 
@@ -309,25 +315,25 @@ class _SignupViewState extends State<SignupView> {
               child: GestureDetector(
                 onTap: () {
                   setState(() {
-                    _selectedGender = '남자';
+                    _selectedGender = '남성';
                   });
                 },
                 child: Container(
                   height: ResponsiveUtils.buttonHeight(context),
                   decoration: BoxDecoration(
-                    color: _selectedGender == '남자' ? AppColors.primaryGreen : Colors.white,
+                    color: _selectedGender == '남성' ? AppColors.primaryGreen : Colors.white,
                     border: Border.all(
-                      color: _selectedGender == '남자' ? AppColors.primaryGreen : AppColors.grayLight,
+                      color: _selectedGender == '남성' ? AppColors.primaryGreen : AppColors.grayLight,
                     ),
                     borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
                   ),
                   child: Center(
                     child: Text(
-                      '남자',
+                      '남성',
                       style: TextStyle(
                         fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
                         fontWeight: FontWeight.w500,
-                        color: _selectedGender == '남자' ? Colors.white : AppColors.textSecondary,
+                        color: _selectedGender == '남성' ? Colors.white : AppColors.textSecondary,
                       ),
                     ),
                   ),
@@ -339,25 +345,25 @@ class _SignupViewState extends State<SignupView> {
               child: GestureDetector(
                 onTap: () {
                   setState(() {
-                    _selectedGender = '여자';
+                    _selectedGender = '여성';
                   });
                 },
                 child: Container(
                   height: ResponsiveUtils.buttonHeight(context),
                   decoration: BoxDecoration(
-                    color: _selectedGender == '여자' ? AppColors.primaryGreen : Colors.white,
+                    color: _selectedGender == '여성' ? AppColors.primaryGreen : Colors.white,
                     border: Border.all(
-                      color: _selectedGender == '여자' ? AppColors.primaryGreen : AppColors.grayLight,
+                      color: _selectedGender == '여성' ? AppColors.primaryGreen : AppColors.grayLight,
                     ),
                     borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
                   ),
                   child: Center(
                     child: Text(
-                      '여자',
+                      '여성',
                       style: TextStyle(
                         fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
                         fontWeight: FontWeight.w500,
-                        color: _selectedGender == '여자' ? Colors.white : AppColors.textSecondary,
+                        color: _selectedGender == '여성' ? Colors.white : AppColors.textSecondary,
                       ),
                     ),
                   ),
@@ -444,37 +450,163 @@ class _SignupViewState extends State<SignupView> {
         ),
         SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
         
-        Container(
-          height: ResponsiveUtils.inputFieldHeight(context),
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.grayLight),
-            borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
-          ),
-          child: Center(
-            child: TextField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              style: TextStyle(
-                fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                fontWeight: FontWeight.w400,
-              ),
-              decoration: InputDecoration(
-                hintText: '01012341234',
-                hintStyle: TextStyle(
-                  color: AppColors.textHint,
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: ResponsiveUtils.inputFieldHeight(context),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.grayLight),
+                  borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
                 ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: ResponsiveUtils.widthPercent(context, 4),
-                  vertical: 0,
+                child: Center(
+                  child: TextField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    readOnly: _isCodeSent,
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                      fontWeight: FontWeight.w400,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: '01012341234',
+                      hintStyle: TextStyle(
+                        color: AppColors.textHint,
+                        fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: ResponsiveUtils.widthPercent(context, 4),
+                        vertical: 0,
+                      ),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
                 ),
               ),
-              onChanged: (_) => setState(() {}),
+            ),
+            SizedBox(width: ResponsiveUtils.widthPercent(context, 2)),
+            SizedBox(
+              height: ResponsiveUtils.inputFieldHeight(context),
+              child: ElevatedButton(
+                onPressed: (!_isCodeSent && _phoneController.text.length >= 10) ? () {
+                  _authBloc.add(SendSmsCodeRequested(phoneNumber: _phoneController.text));
+                } : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryGreen,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  _isCodeSent ? '전송됨' : '인증번호 전송',
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        
+        // 인증코드 입력 필드 (인증번호 전송 후 표시)
+        if (_isCodeSent) ...[
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+          Text(
+            '인증번호',
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
             ),
           ),
-        ),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: ResponsiveUtils.inputFieldHeight(context),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: _isCodeVerified ? AppColors.primaryGreen : AppColors.grayLight,
+                    ),
+                    borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                  ),
+                  child: Center(
+                    child: TextField(
+                      controller: _verificationCodeController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(6),
+                      ],
+                      readOnly: _isCodeVerified,
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                        fontWeight: FontWeight.w400,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: '6자리 인증번호',
+                        hintStyle: TextStyle(
+                          color: AppColors.textHint,
+                          fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: ResponsiveUtils.widthPercent(context, 4),
+                          vertical: 0,
+                        ),
+                      ),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: ResponsiveUtils.widthPercent(context, 2)),
+              SizedBox(
+                height: ResponsiveUtils.inputFieldHeight(context),
+                child: ElevatedButton(
+                  onPressed: (!_isCodeVerified && _verificationCodeController.text.length == 6) ? () {
+                    _authBloc.add(VerifySmsCodeRequested(
+                      phoneNumber: _phoneController.text,
+                      code: _verificationCodeController.text,
+                    ));
+                  } : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isCodeVerified ? AppColors.success : AppColors.primaryGreen,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    _isCodeVerified ? '인증완료' : '인증하기',
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (_isCodeVerified) ...[
+            SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+            Text(
+              '✓ 휴대폰 인증이 완료되었습니다.',
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                color: AppColors.success,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ],
         
         // Show previous info
         ..._buildPreviousStepInfo(),
@@ -648,9 +780,9 @@ class _SignupViewState extends State<SignupView> {
               child: Container(
                 height: ResponsiveUtils.inputFieldHeight(context),
                 decoration: BoxDecoration(
-                  color: _selectedGender == '남자' ? AppColors.primaryGreen : Colors.white,
+                  color: _selectedGender == '남성' ? AppColors.primaryGreen : Colors.white,
                   border: Border.all(
-                    color: _selectedGender == '남자' ? AppColors.primaryGreen : AppColors.grayLight,
+                    color: _selectedGender == '남성' ? AppColors.primaryGreen : AppColors.grayLight,
                   ),
                   borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
                 ),
@@ -660,7 +792,7 @@ class _SignupViewState extends State<SignupView> {
                     style: TextStyle(
                       fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
                       fontWeight: FontWeight.w500,
-                      color: _selectedGender == '남자' ? Colors.white : AppColors.textSecondary,
+                      color: _selectedGender == '남성' ? Colors.white : AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -671,9 +803,9 @@ class _SignupViewState extends State<SignupView> {
               child: Container(
                 height: ResponsiveUtils.inputFieldHeight(context),
                 decoration: BoxDecoration(
-                  color: _selectedGender == '여자' ? AppColors.primaryGreen : Colors.white,
+                  color: _selectedGender == '여성' ? AppColors.primaryGreen : Colors.white,
                   border: Border.all(
-                    color: _selectedGender == '여자' ? AppColors.primaryGreen : AppColors.grayLight,
+                    color: _selectedGender == '여성' ? AppColors.primaryGreen : AppColors.grayLight,
                   ),
                   borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
                 ),
@@ -683,7 +815,7 @@ class _SignupViewState extends State<SignupView> {
                     style: TextStyle(
                       fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
                       fontWeight: FontWeight.w500,
-                      color: _selectedGender == '여자' ? Colors.white : AppColors.textSecondary,
+                      color: _selectedGender == '여성' ? Colors.white : AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -738,6 +870,34 @@ class _SignupViewState extends State<SignupView> {
               (route) => false,
             );
           } else if (state is AuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          } else if (state is SmsCodeSent) {
+            setState(() {
+              _isCodeSent = true;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('인증번호가 전송되었습니다.'),
+                backgroundColor: AppColors.primaryGreen,
+              ),
+            );
+          } else if (state is SmsCodeVerified) {
+            setState(() {
+              _isCodeVerified = true;
+              _temporaryToken = state.temporaryToken;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('인증이 완료되었습니다.'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          } else if (state is SmsCodeError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),

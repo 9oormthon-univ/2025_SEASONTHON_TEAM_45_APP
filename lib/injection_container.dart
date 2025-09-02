@@ -17,8 +17,10 @@ import 'domain/usecases/login.dart';
 import 'domain/usecases/logout.dart';
 import 'domain/usecases/register.dart';
 import 'domain/usecases/scan_ble_devices.dart';
+import 'domain/usecases/send_sms_code.dart';
 import 'domain/usecases/set_auto_login.dart';
 import 'domain/usecases/start_scan.dart';
+import 'domain/usecases/verify_sms_code.dart';
 import 'presentation/bloc/auth/auth_bloc.dart';
 import 'presentation/bloc/ble/ble_bloc.dart';
 import 'presentation/bloc/reservation/reservation_bloc.dart';
@@ -42,6 +44,8 @@ Future<void> init() async {
       autoLogin: sl(),
       logout: sl(),
       setAutoLogin: sl(),
+      sendSmsCode: sl(),
+      verifySmsCode: sl(),
     ),
   );
   
@@ -63,6 +67,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AutoLogin(sl()));
   sl.registerLazySingleton(() => Logout(sl()));
   sl.registerLazySingleton(() => SetAutoLogin(sl()));
+  sl.registerLazySingleton(() => SendSmsCode(sl()));
+  sl.registerLazySingleton(() => VerifySmsCode(sl()));
   
   // Use cases - Reservation
   sl.registerLazySingleton(() => GetReservations(sl()));

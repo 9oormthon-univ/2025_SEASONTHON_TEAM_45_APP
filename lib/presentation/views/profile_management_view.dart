@@ -20,7 +20,7 @@ class _ProfileManagementViewState extends State<ProfileManagementView> {
   int _selectedYear = DateTime.now().year - 30;
   int _selectedMonth = 1;
   int _selectedDay = 1;
-  String _selectedGender = '남자';
+  String _selectedGender = '남성';
   
   bool _isEditing = false;
   
@@ -40,7 +40,7 @@ class _ProfileManagementViewState extends State<ProfileManagementView> {
       _selectedYear = currentUser['year'] ?? DateTime.now().year - 30;
       _selectedMonth = currentUser['month'] ?? 1;
       _selectedDay = currentUser['day'] ?? 1;
-      _selectedGender = currentUser['gender'] ?? '남자';
+      _selectedGender = currentUser['gender'] ?? '남성';
     }
   }
   
@@ -304,7 +304,7 @@ class _ProfileManagementViewState extends State<ProfileManagementView> {
                               onTap: _isEditing
                                   ? () {
                                       setState(() {
-                                        _selectedGender = '남자';
+                                        _selectedGender = '남성';
                                       });
                                     }
                                   : null,
@@ -313,12 +313,12 @@ class _ProfileManagementViewState extends State<ProfileManagementView> {
                                   vertical: ResponsiveUtils.spacing(context, SpacingSize.md),
                                 ),
                                 decoration: BoxDecoration(
-                                  color: _selectedGender == '남자'
+                                  color: _selectedGender == '남성'
                                       ? AppColors.primaryGreen
                                       : (_isEditing ? Colors.white : AppColors.backgroundGray),
                                   borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
                                   border: Border.all(
-                                    color: _selectedGender == '남자'
+                                    color: _selectedGender == '남성'
                                         ? AppColors.primaryGreen
                                         : AppColors.grayLight,
                                     width: 1,
@@ -326,11 +326,11 @@ class _ProfileManagementViewState extends State<ProfileManagementView> {
                                 ),
                                 child: Center(
                                   child: Text(
-                                    '남자',
+                                    '남성',
                                     style: TextStyle(
                                       fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
                                       fontWeight: FontWeight.w600,
-                                      color: _selectedGender == '남자'
+                                      color: _selectedGender == '남성'
                                           ? Colors.white
                                           : AppColors.textSecondary,
                                     ),
@@ -345,7 +345,7 @@ class _ProfileManagementViewState extends State<ProfileManagementView> {
                               onTap: _isEditing
                                   ? () {
                                       setState(() {
-                                        _selectedGender = '여자';
+                                        _selectedGender = '여성';
                                       });
                                     }
                                   : null,
@@ -354,12 +354,12 @@ class _ProfileManagementViewState extends State<ProfileManagementView> {
                                   vertical: ResponsiveUtils.spacing(context, SpacingSize.md),
                                 ),
                                 decoration: BoxDecoration(
-                                  color: _selectedGender == '여자'
+                                  color: _selectedGender == '여성'
                                       ? AppColors.primaryGreen
                                       : (_isEditing ? Colors.white : AppColors.backgroundGray),
                                   borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
                                   border: Border.all(
-                                    color: _selectedGender == '여자'
+                                    color: _selectedGender == '여성'
                                         ? AppColors.primaryGreen
                                         : AppColors.grayLight,
                                     width: 1,
@@ -367,11 +367,11 @@ class _ProfileManagementViewState extends State<ProfileManagementView> {
                                 ),
                                 child: Center(
                                   child: Text(
-                                    '여자',
+                                    '여성',
                                     style: TextStyle(
                                       fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
                                       fontWeight: FontWeight.w600,
-                                      color: _selectedGender == '여자'
+                                      color: _selectedGender == '여성'
                                           ? Colors.white
                                           : AppColors.textSecondary,
                                     ),

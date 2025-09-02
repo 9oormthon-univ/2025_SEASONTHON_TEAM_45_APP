@@ -5,6 +5,8 @@ import '../../../domain/usecases/login.dart';
 import '../../../domain/usecases/logout.dart';
 import '../../../domain/usecases/register.dart';
 import '../../../domain/usecases/set_auto_login.dart';
+import '../../../domain/usecases/send_sms_code.dart';
+import '../../../domain/usecases/verify_sms_code.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -14,6 +16,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AutoLogin autoLogin;
   final Logout logout;
   final SetAutoLogin setAutoLogin;
+  final SendSmsCode sendSmsCode;
+  final VerifySmsCode verifySmsCode;
 
   AuthBloc({
     required this.login,
@@ -21,12 +25,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.autoLogin,
     required this.logout,
     required this.setAutoLogin,
+    required this.sendSmsCode,
+    required this.verifySmsCode,
   }) : super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<RegisterRequested>(_onRegisterRequested);
     on<AutoLoginRequested>(_onAutoLoginRequested);
     on<LogoutRequested>(_onLogoutRequested);
     on<CheckAuthStatus>(_onCheckAuthStatus);
+    on<SendSmsCodeRequested>(_onSendSmsCodeRequested);
+    on<VerifySmsCodeRequested>(_onVerifySmsCodeRequested);
   }
 
   Future<void> _onLoginRequested(
@@ -70,11 +78,51 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       birthDate: event.birthDate,
       phoneNumber: event.phoneNumber,
       password: event.password,
+      temporaryToken: event.temporaryToken,
     ));
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),
       (user) => emit(Authenticated(user)),
+    );
+  }
+  
+  Future<void> _onSendSmsCodeRequested(
+    SendSmsCodeRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    
+    final result = await sendSmsCode(SendSmsCodeParams(
+      phoneNumber: event.phoneNumber,
+    ));
+    
+    result.fold(
+      (failure) => emit(SmsCodeError(failure.message)),
+      (success) {
+        if (success) {
+          emit(SmsCodeSent(event.phoneNumber));
+        } else {
+          emit(const SmsCodeError('SMS 전송에 실패했습니다.'));
+        }
+      },
+    );
+  }
+  
+  Future<void> _onVerifySmsCodeRequested(
+    VerifySmsCodeRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    
+    final result = await verifySmsCode(VerifySmsCodeParams(
+      phoneNumber: event.phoneNumber,
+      code: event.code,
+    ));
+    
+    result.fold(
+      (failure) => emit(SmsCodeError(failure.message)),
+      (temporaryToken) => emit(SmsCodeVerified(temporaryToken)),
     );
   }
 
