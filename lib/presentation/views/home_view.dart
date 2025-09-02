@@ -176,7 +176,12 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.md)),
+      padding: EdgeInsets.only(
+        left: ResponsiveUtils.horizontalPadding(context),
+        right: ResponsiveUtils.horizontalPadding(context),
+        top: ResponsiveUtils.heightPercent(context, 1), // 상단 안전영역
+        bottom: ResponsiveUtils.heightPercent(context, 1), // 헤더 하단 최소 여백
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -191,7 +196,7 @@ class _HomeViewState extends State<HomeView> {
               Text(
                 '구름대병원',
                 style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.xxl),
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryGreen,
                 ),
@@ -214,58 +219,10 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildEmptyState(BuildContext context) {
     return Padding(
-      padding: ResponsiveUtils.defaultPadding(context),
+      padding: ResponsiveUtils.horizontalPaddingOnly(context),
       child: Column(
         children: [
-          const Spacer(),
-          // 카드 SVG를 Stack으로 구현
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              // 카드 배경 SVG
-              SvgPicture.asset(
-                'assets/images/Card.svg',
-                width: MediaQuery.of(context).size.width - 40,
-                fit: BoxFit.contain,
-              ),
-              // 카드 내용
-              Positioned.fill(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 80),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/images/Cloud (2).svg',
-                        width: 60,
-                        height: 60,
-                        colorFilter: const ColorFilter.mode(
-                          AppColors.primaryGreen,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        '아직 확인된 예약이 없어요.',
-                        style: TextStyle(
-                          fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '예약하기를 눌러 진행해 주세요.',
-                        style: TextStyle(
-                          fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+          _buildCard(context, _buildEmptyContent(context)),
           const Spacer(),
           // 테스트 버튼들
           if (DEBUG_MODE) ...[
@@ -273,6 +230,39 @@ class _HomeViewState extends State<HomeView> {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildEmptyContent(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SvgPicture.asset(
+          'assets/images/Cloud (2).svg',
+          width: 60,
+          height: 60,
+          colorFilter: const ColorFilter.mode(
+            AppColors.primaryGreen,
+            BlendMode.srcIn,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          '아직 확인된 예약이 없어요.',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '예약하기를 눌러 진행해 주세요.',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 
@@ -301,91 +291,10 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildReservationCard(BuildContext context, dynamic reservation) {
     return Padding(
-      padding: ResponsiveUtils.defaultPadding(context),
+      padding: ResponsiveUtils.horizontalPaddingOnly(context),
       child: Column(
         children: [
-          const Spacer(),
-          // 카드 SVG를 Stack으로 구현
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              // 카드 배경 SVG
-              SvgPicture.asset(
-                'assets/images/Card.svg',
-                width: MediaQuery.of(context).size.width - 40,
-                fit: BoxFit.contain,
-              ),
-              // 카드 내용
-              Positioned.fill(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 상태 인디케이터
-                      _buildStatusIndicator(context, reservation),
-                      const SizedBox(height: 8),
-                      Text(
-                        _getStatusMessage(reservation.status),
-                        style: TextStyle(
-                          fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const Spacer(),
-                      // 호출됨 상태
-                      if (reservation.status == 'CALLED' && reservation.roomName != null) ...[
-                        Center(
-                          child: Column(
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/Cloud (1).svg',
-                                width: 60,
-                                height: 60,
-                                colorFilter: const ColorFilter.mode(
-                                  AppColors.primaryGreen,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              Text(
-                                '${reservation.roomName}진료실로',
-                                style: TextStyle(
-                                  fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              Text(
-                                '입장해주세요',
-                                style: TextStyle(
-                                  fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _buildInfoColumn('예약 시간', _formatTime(reservation.time)),
-                                  _buildInfoColumn('진료과', reservation.department ?? '내과'),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ] else ...[
-                        // 예약 완료/대기 중 상태
-                        const SizedBox(height: 40),
-                        _buildReservationInfo(context, reservation),
-                      ],
-                      const Spacer(),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+          _buildCard(context, _buildReservationContent(context, reservation)),
           const Spacer(),
           // 테스트 버튼들
           if (DEBUG_MODE) ...[
@@ -393,6 +302,123 @@ class _HomeViewState extends State<HomeView> {
           ],
         ],
       ),
+    );
+  }
+
+  // 통합된 카드 위젯
+  Widget _buildCard(BuildContext context, Widget content) {
+    return SizedBox(
+      height: ResponsiveUtils.heightPercent(context, 55), // 카드 고정 높이 55%
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // 카드 배경 SVG
+          SvgPicture.asset(
+            'assets/images/Card.svg',
+            width: MediaQuery.of(context).size.width - ResponsiveUtils.widthPercent(context, 10), // 좌우 여백 4%씩
+            height: ResponsiveUtils.heightPercent(context, 55),
+            fit: BoxFit.fill,
+          ),
+          // 카드 내용
+          Positioned.fill(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: ResponsiveUtils.widthPercent(context, 10), // 카드 내부 좌우 여백 8%
+                vertical: ResponsiveUtils.heightPercent(context, 6), // 카드 내부 상하 여백 6%
+              ),
+            child: SingleChildScrollView(
+              physics: NeverScrollableScrollPhysics(), // 스크롤 비활성화 (오버플로우만 방지)
+              child: content,
+            ),
+          ),
+        ),
+      ],
+      ),
+    );
+  }
+
+  Widget _buildReservationContent(BuildContext context, dynamic reservation) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 상태 인디케이터와 구분선
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.only(
+            bottom: ResponsiveUtils.spacing(context, SpacingSize.lg),
+          ),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                width: 1,
+                color: const Color(0xFFC9CCCB),
+              ),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStatusIndicator(context, reservation),
+              SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xs)),
+              Text(
+                _getStatusMessage(reservation.status),
+                style: TextStyle(
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF858585),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.lg)),
+        // 호출됨 상태
+        if (reservation.status == 'CALLED' && reservation.roomName != null) ...[
+          Center(
+            child: Column(
+              children: [
+                SvgPicture.asset(
+                  'assets/images/Cloud (1).svg',
+                  width: 60,
+                  height: 60,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.primaryGreen,
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  '${reservation.roomName}',
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  '진료실로 입장해주세요',
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildInfoColumn('예약 시간', _formatTime(reservation.time)),
+                    _buildInfoColumn('진료과', reservation.department ?? '내과'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ] else ...[
+          // 예약 완료/대기 중 상태
+          _buildReservationInfo(context, reservation),
+        ],
+      ],
     );
   }
   
@@ -452,9 +478,9 @@ class _HomeViewState extends State<HomeView> {
         Text(
           text,
           style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl), // 24px 상당
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
           ),
         ),
       ],
@@ -466,78 +492,101 @@ class _HomeViewState extends State<HomeView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 방문 예정 날짜
-        Text(
-          '방문 예정 날짜',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _formatDate(reservation.appointmentDate),
+              '방문 예정 날짜',
               style: TextStyle(
-                fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.md), // 16px 상당
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF858585),
               ),
             ),
-            const SizedBox(width: 8),
-            if (reservation.status == 'SCHEDULED')
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryGreen,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '대기중',
+            SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)), // 12px 상당
+            Row(
+              children: [
+                Text(
+                  _formatDate(reservation.appointmentDate),
                   style: TextStyle(
-                    fontSize: ResponsiveUtils.fontSize(context, FontSize.xs),
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                    fontSize: ResponsiveUtils.fontSize(context, FontSize.xl), // 24px 상당
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
                   ),
                 ),
-              ),
+                SizedBox(width: ResponsiveUtils.spacing(context, SpacingSize.md)), // 16px 상당
+                if (_getDaysDifference(reservation.appointmentDate) >= 0)
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: ResponsiveUtils.widthPercent(context, 3), // 12px 상당
+                      vertical: ResponsiveUtils.heightPercent(context, 0.5), // 4px 상당
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF13D094),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: Text(
+                      _getDaysDifference(reservation.appointmentDate) == 0 
+                        ? 'D-Day' 
+                        : 'D-${_getDaysDifference(reservation.appointmentDate)}',
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.fontSize(context, FontSize.sm), // 14px 상당
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFFFCFFFE),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.lg)), // 24px 상당
         // 방문 예정 시간
-        Text(
-          '방문 예정 시간',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-            color: AppColors.textSecondary,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '방문 예정 시간',
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.md), // 16px 상당
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF858585),
+              ),
+            ),
+            SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)), // 12px 상당
+            Text(
+              _formatTime(reservation.appointmentTime),
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.xl), // 24px 상당
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          _formatTime(reservation.appointmentTime),
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 20),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.lg)), // 24px 상당
         // 진료과
-        Text(
-          '진료과',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          reservation.department ?? '내과',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '진료과',
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.md), // 16px 상당
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF858585),
+              ),
+            ),
+            SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)), // 12px 상당
+            Text(
+              reservation.department ?? '내과',
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.xl), // 24px 상당
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -560,6 +609,24 @@ class _HomeViewState extends State<HomeView> {
       return '오전 ${hour == 0 ? 12 : hour}:$minute';
     } else {
       return '오후 ${hour == 12 ? 12 : hour - 12}:$minute';
+    }
+  }
+
+  int _getDaysDifference(String date) {
+    // 예약 날짜까지 남은 일수 계산
+    try {
+      final parts = date.split('-');
+      final appointmentDate = DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+      final today = DateTime.now();
+      final todayMidnight = DateTime(today.year, today.month, today.day);
+      final difference = appointmentDate.difference(todayMidnight).inDays;
+      return difference;
+    } catch (e) {
+      return -1; // 에러 시 -1 반환 (D-day 표시 안 함)
     }
   }
 
