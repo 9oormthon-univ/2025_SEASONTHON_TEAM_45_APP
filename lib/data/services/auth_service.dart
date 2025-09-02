@@ -97,21 +97,14 @@ class AuthService {
   // SMS 인증코드 전송
   Future<bool> sendSmsCode(String phoneNumber) async {
     try {
-      print('SMS 전송 요청 URL: ${_dio.options.baseUrl}${ApiEndpoints.smsSend}');
-      print('요청 데이터: phoneNumber=$phoneNumber');
-      
       final response = await _dio.post(
         ApiEndpoints.smsSend,
         data: {'phoneNumber': phoneNumber},
       );
       
-      print('SMS 전송 성공: ${response.data}');
       return response.statusCode == 200;
     } on DioException catch (e) {
-      print('SMS 전송 실패 - URL: ${e.requestOptions.uri}');
-      print('SMS 전송 실패 - 에러: ${e.message}');
-      print('SMS 전송 실패 - 응답: ${e.response?.data}');
-      print('SMS 전송 실패 - 상태코드: ${e.response?.statusCode}');
+      print('SMS 전송 실패: ${e.response?.data}');
       return false;
     }
   }

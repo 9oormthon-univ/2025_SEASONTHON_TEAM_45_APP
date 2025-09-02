@@ -1,6 +1,6 @@
 class ApiEndpoints {
   // Base URL - 실제 서버 URL
-  static const String baseUrl = 'http://13.124.250.98:8080';
+  static const String baseUrl = 'http://13.209.99.158:8080';
   
   // Auth Endpoints
   static const String login = '/api/v1/auth/patient/sign-in';
