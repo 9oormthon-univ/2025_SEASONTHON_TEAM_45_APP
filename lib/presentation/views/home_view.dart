@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
@@ -183,25 +184,17 @@ class _HomeViewState extends State<HomeView> {
         children: [
           Row(
             children: [
-              Container(
+              SvgPicture.asset(
+                'assets/images/Cloud.svg',
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryGreen,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Icon(
-                  Icons.local_hospital,
-                  color: Colors.white,
-                  size: 24,
-                ),
               ),
               const SizedBox(width: 8),
               Text(
-                '구름병원',
+                '구름대병원',
                 style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-                  fontWeight: FontWeight.w600,
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+                  fontWeight: FontWeight.w700,
                   color: AppColors.primaryGreen,
                 ),
               ),
@@ -225,8 +218,9 @@ class _HomeViewState extends State<HomeView> {
     return Padding(
       padding: ResponsiveUtils.defaultPadding(context),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Spacer(),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
           Text(
             '$_userName님,',
             style: TextStyle(
@@ -259,10 +253,16 @@ class _HomeViewState extends State<HomeView> {
                     color: AppColors.grayLight,
                     borderRadius: BorderRadius.circular(40),
                   ),
-                  child: const Icon(
-                    Icons.cloud_outlined,
-                    size: 48,
-                    color: AppColors.textSecondary,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'assets/images/Cloud.svg',
+                      width: 48,
+                      height: 48,
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.textSecondary,
+                        BlendMode.srcIn,
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
@@ -321,8 +321,9 @@ class _HomeViewState extends State<HomeView> {
     return Padding(
       padding: ResponsiveUtils.defaultPadding(context),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Spacer(),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
           Text(
             '$_userName님,',
             style: TextStyle(

@@ -5,11 +5,11 @@ class AuthStorage {
   AuthStorage._internal() {
     // 테스트 계정 추가
     _users['01055338237'] = {
-      'name': '테스트 사용자',
+      'name': '김호중',
       'password': 'jack8237!!',
-      'year': 1990,
-      'month': 1,
-      'day': 1,
+      'year': 2000,
+      'month': 9,
+      'day': 19,
       'gender': '남성',
     };
   }
