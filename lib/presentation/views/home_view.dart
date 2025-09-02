@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../../core/widgets/gradient_background.dart';
 import '../../data/auth_storage.dart';
 import '../bloc/reservation/reservation_bloc.dart';
 import '../bloc/reservation/reservation_state.dart';
@@ -114,43 +115,40 @@ class _HomeViewState extends State<HomeView> {
               );
             }
           },
-          child: Scaffold(
-            backgroundColor: AppColors.backgroundWhite,
-            body: SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(context),
-                  Expanded(
-                    child: BlocBuilder<ReservationBloc, ReservationState>(
-                      builder: (context, state) {
-                        if (state is ReservationLoading) {
-                          return const Center(child: CircularProgressIndicator());
-                        } else if (state is ReservationLoaded) {
-                          // 예약 정렬: 오늘 예약 우선, 그 다음 날짜순
-                          final sortedReservations = _sortReservations(state.reservations);
-                          
-                          if (sortedReservations.isEmpty) {
-                            return _buildEmptyState(context);
-                          } else {
-                            // 오늘 예약이 SCHEDULED 상태면 BLE 스캔 시작
-                            final todayReservation = sortedReservations.first;
-                            if (_isToday(todayReservation.appointmentDate) && 
-                                todayReservation.status == 'SCHEDULED') {
-                              _startBleScanning(todayReservation.appointmentId.toString());
-                            }
+          child: GradientScaffold(
+            body: Column(
+              children: [
+                _buildHeader(context),
+                Expanded(
+                  child: BlocBuilder<ReservationBloc, ReservationState>(
+                        builder: (context, state) {
+                          if (state is ReservationLoading) {
+                            return const Center(child: CircularProgressIndicator());
+                          } else if (state is ReservationLoaded) {
+                            // 예약 정렬: 오늘 예약 우선, 그 다음 날짜순
+                            final sortedReservations = _sortReservations(state.reservations);
                             
-                            return _buildReservationPages(context, sortedReservations);
+                            if (sortedReservations.isEmpty) {
+                              return _buildEmptyState(context);
+                            } else {
+                              // 오늘 예약이 SCHEDULED 상태면 BLE 스캔 시작
+                              final todayReservation = sortedReservations.first;
+                              if (_isToday(todayReservation.appointmentDate) && 
+                                  todayReservation.status == 'SCHEDULED') {
+                                _startBleScanning(todayReservation.appointmentId.toString());
+                              }
+                              
+                              return _buildReservationPages(context, sortedReservations);
+                            }
+                          } else if (state is ReservationError) {
+                            return Center(child: Text(state.message));
                           }
-                        } else if (state is ReservationError) {
-                          return Center(child: Text(state.message));
-                        }
-                        return _buildEmptyState(context);
-                      },
-                    ),
+                          return _buildEmptyState(context);
+                        },
                   ),
-                  _buildBottomButton(context),
-                ],
-              ),
+                ),
+                _buildBottomButton(context),
+              ],
             ),
           ),
         ),
@@ -218,77 +216,61 @@ class _HomeViewState extends State<HomeView> {
     return Padding(
       padding: ResponsiveUtils.defaultPadding(context),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-          Text(
-            '$_userName님,',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.xxl),
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          Text(
-            '환영합니다',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.xxl),
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
           const Spacer(),
-          Container(
-            padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.xl)),
-            decoration: BoxDecoration(
-              color: AppColors.grayLight.withOpacity(0.3),
-              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.large),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: AppColors.grayLight,
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                  child: Center(
-                    child: SvgPicture.asset(
-                      'assets/images/Cloud.svg',
-                      width: 48,
-                      height: 48,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.textSecondary,
-                        BlendMode.srcIn,
+          // 카드 SVG를 Stack으로 구현
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // 카드 배경 SVG
+              SvgPicture.asset(
+                'assets/images/Card.svg',
+                width: MediaQuery.of(context).size.width - 40,
+                fit: BoxFit.contain,
+              ),
+              // 카드 내용
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 80),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SvgPicture.asset(
+                        'assets/images/Cloud.svg',
+                        width: 60,
+                        height: 60,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.primaryGreen,
+                          BlendMode.srcIn,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 20),
+                      Text(
+                        '아직 확인된 예약이 없어요.',
+                        style: TextStyle(
+                          fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '예약하기를 눌러 진행해 주세요.',
+                        style: TextStyle(
+                          fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
-                Text(
-                  '아직 확인된 예약이 없어요.',
-                  style: TextStyle(
-                    fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  '예약하기를 눌러 진행해 주세요.',
-                  style: TextStyle(
-                    fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
           const Spacer(),
           // 테스트 버튼들
           if (DEBUG_MODE) ...[
             _buildTestButtons(context),
           ],
-          const Spacer(),
         ],
       ),
     );
@@ -321,179 +303,102 @@ class _HomeViewState extends State<HomeView> {
     return Padding(
       padding: ResponsiveUtils.defaultPadding(context),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-          Text(
-            '$_userName님,',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.xxl),
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          Text(
-            '환영합니다',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.xxl),
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
           const Spacer(),
-          Container(
-            padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.xl)),
-            decoration: BoxDecoration(
-              color: _getStatusColor(reservation.status).withOpacity(0.1),
-              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.large),
-            ),
-            child: Column(
-              children: [
-                _buildStatusIndicator(context, reservation),
-                SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
-                Text(
-                  _getStatusMessage(reservation.status),
-                  style: TextStyle(
-                    fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                    color: AppColors.textSecondary,
+          // 카드 SVG를 Stack으로 구현
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // 카드 배경 SVG
+              SvgPicture.asset(
+                'assets/images/Card.svg',
+                width: MediaQuery.of(context).size.width - 40,
+                fit: BoxFit.contain,
+              ),
+              // 카드 내용
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 상태 인디케이터
+                      _buildStatusIndicator(context, reservation),
+                      const SizedBox(height: 8),
+                      Text(
+                        _getStatusMessage(reservation.status),
+                        style: TextStyle(
+                          fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const Spacer(),
+                      // 호출됨 상태
+                      if (reservation.status == 'CALLED' && reservation.roomName != null) ...[
+                        Center(
+                          child: Column(
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/Cloud.svg',
+                                width: 60,
+                                height: 60,
+                                colorFilter: const ColorFilter.mode(
+                                  AppColors.primaryGreen,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                '${reservation.roomName}진료실로',
+                                style: TextStyle(
+                                  fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                '입장해주세요',
+                                style: TextStyle(
+                                  fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildInfoColumn('예약 시간', _formatTime(reservation.time)),
+                                  _buildInfoColumn('진료과', reservation.department ?? '내과'),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ] else ...[
+                        // 예약 완료/대기 중 상태
+                        const SizedBox(height: 40),
+                        _buildReservationInfo(context, reservation),
+                      ],
+                      const Spacer(),
+                    ],
                   ),
                 ),
-                if (reservation.status == 'CALLED' && reservation.roomName != null) ...[
-                  SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-                  Text(
-                    '${reservation.roomName}진료실로',
-                    style: TextStyle(
-                      fontSize: ResponsiveUtils.fontSize(context, FontSize.xxl),
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  Text(
-                    '입장해주세요',
-                    style: TextStyle(
-                      fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ] else ...[
-                  SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
-                  _buildReservationInfo(context, reservation),
-                ],
-              ],
-            ),
+              ),
+            ],
           ),
           const Spacer(),
           // 테스트 버튼들
           if (DEBUG_MODE) ...[
             _buildTestButtons(context),
           ],
-          const Spacer(),
         ],
       ),
     );
   }
-
-  Widget _buildStatusIndicator(BuildContext context, dynamic reservation) {
-    switch (reservation.status) {
-      case 'SCHEDULED':
-        return Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: ResponsiveUtils.spacing(context, SpacingSize.md),
-            vertical: ResponsiveUtils.spacing(context, SpacingSize.sm),
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle, color: Color(0xFFFFB800), size: 20),
-              const SizedBox(width: 8),
-              Text(
-                '예약 완료',
-                style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        );
-      case 'ARRIVED':
-        return Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: ResponsiveUtils.spacing(context, SpacingSize.md),
-            vertical: ResponsiveUtils.spacing(context, SpacingSize.sm),
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.more_horiz, color: Colors.blue, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                '대기 중',
-                style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        );
-      case 'CALLED':
-        return Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: ResponsiveUtils.spacing(context, SpacingSize.md),
-            vertical: ResponsiveUtils.spacing(context, SpacingSize.sm),
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                '호출됨',
-                style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-
-  Widget _buildReservationInfo(BuildContext context, dynamic reservation) {
+  
+  Widget _buildInfoColumn(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildInfoRow('예약 날짜', _formatDate(reservation.appointmentDate)),
-        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-        _buildInfoRow('예약 시간', _formatTime(reservation.appointmentTime)),
-        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-        _buildInfoRow('진료과', reservation.department ?? '내과'),
-      ],
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
@@ -502,6 +407,7 @@ class _HomeViewState extends State<HomeView> {
             color: AppColors.textSecondary,
           ),
         ),
+        const SizedBox(height: 4),
         Text(
           value,
           style: TextStyle(
@@ -513,6 +419,130 @@ class _HomeViewState extends State<HomeView> {
       ],
     );
   }
+
+  Widget _buildStatusIndicator(BuildContext context, dynamic reservation) {
+    IconData icon;
+    Color color;
+    String text;
+    
+    switch (reservation.status) {
+      case 'SCHEDULED':
+        icon = Icons.check_circle;
+        color = const Color(0xFFFFB800);
+        text = '예약 완료';
+        break;
+      case 'ARRIVED':
+        icon = Icons.error_outline;
+        color = Colors.red;
+        text = '호출됨';
+        break;
+      case 'CALLED':
+        icon = Icons.error_outline;
+        color = Colors.red;
+        text = '호출됨';
+        break;
+      default:
+        return const SizedBox.shrink();
+    }
+    
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReservationInfo(BuildContext context, dynamic reservation) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 방문 예정 날짜
+        Text(
+          '방문 예정 날짜',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Text(
+              _formatDate(reservation.appointmentDate),
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (reservation.status == 'SCHEDULED')
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '대기중',
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.fontSize(context, FontSize.xs),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        // 방문 예정 시간
+        Text(
+          '방문 예정 시간',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _formatTime(reservation.appointmentTime),
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 20),
+        // 진료과
+        Text(
+          '진료과',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          reservation.department ?? '내과',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
 
   String _formatDate(String date) {
     // 2024-12-31 -> 2024년 12월 31일
@@ -577,12 +607,19 @@ class _HomeViewState extends State<HomeView> {
             ),
             elevation: 0,
           ),
-          child: Text(
-            '예약하기',
-            style: TextStyle(
-              fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
-              fontWeight: FontWeight.w600,
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.add, color: Colors.white, size: 20),
+              const SizedBox(width: 4),
+              Text(
+                '예약하기',
+                style: TextStyle(
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -642,18 +679,6 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'SCHEDULED':
-        return const Color(0xFFFFB800);
-      case 'ARRIVED':
-        return Colors.blue;
-      case 'CALLED':
-        return Colors.red;
-      default:
-        return AppColors.grayLight;
-    }
-  }
 
   String _getStatusMessage(String status) {
     switch (status) {

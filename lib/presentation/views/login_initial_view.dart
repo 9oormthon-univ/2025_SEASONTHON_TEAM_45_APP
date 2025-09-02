@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../../core/widgets/gradient_background.dart';
 import 'login_input_view.dart';
 import 'signup_view.dart';
 
@@ -9,12 +10,10 @@ class LoginInitialView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundWhite,
-      body: SafeArea(
-        child: Padding(
-          padding: ResponsiveUtils.defaultPadding(context),
-          child: Column(
+    return GradientScaffold(
+      body: Padding(
+        padding: ResponsiveUtils.defaultPadding(context),
+        child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(flex: 2),
@@ -139,7 +138,6 @@ class LoginInitialView extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

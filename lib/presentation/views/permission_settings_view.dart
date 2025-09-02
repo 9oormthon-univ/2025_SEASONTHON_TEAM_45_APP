@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../../core/widgets/gradient_background.dart';
 import '../widgets/custom_back_button.dart';
 
 class PermissionSettingsView extends StatefulWidget {
@@ -235,8 +236,7 @@ class _PermissionSettingsViewState extends State<PermissionSettingsView>
         _notificationPermissionGranted && 
         _locationPermissionGranted;
     
-    return Scaffold(
-      backgroundColor: AppColors.backgroundWhite,
+    return GradientScaffold(
       body: SafeArea(
         child: Column(
           children: [

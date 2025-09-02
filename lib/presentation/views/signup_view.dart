@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../../core/widgets/gradient_background.dart';
 import '../../injection_container.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
@@ -748,11 +749,9 @@ class _SignupViewState extends State<SignupView> {
         builder: (context, state) {
           final isLoading = state is AuthLoading;
           
-          return Scaffold(
-            backgroundColor: AppColors.backgroundWhite,
-            body: SafeArea(
-              child: Column(
-                children: [
+          return GradientScaffold(
+            body: Column(
+              children: [
             // Header with progress bar
             Padding(
               padding: EdgeInsets.symmetric(
@@ -813,8 +812,7 @@ class _SignupViewState extends State<SignupView> {
             ),
           ],
         ),
-      ),
-    );
+      );
         },
       ),
     );

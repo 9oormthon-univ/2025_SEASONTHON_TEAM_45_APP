@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/widgets/gradient_background.dart';
 import '../bloc/ble/ble_bloc.dart';
 import '../bloc/ble/ble_event.dart';
 import '../bloc/ble/ble_state.dart';
@@ -57,10 +58,12 @@ class _BleScanViewState extends State<BleScanView>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GradientScaffold(
       appBar: AppBar(
         title: const Text('BLE 스캔'),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: BlocBuilder<BleBloc, BleState>(
         builder: (context, state) {

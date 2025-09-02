@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../../core/widgets/gradient_background.dart';
 import '../../data/auth_storage.dart';
 import '../widgets/custom_back_button.dart';
 
@@ -52,8 +53,7 @@ class _ProfileManagementViewState extends State<ProfileManagementView> {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundWhite,
+    return GradientScaffold(
       body: SafeArea(
         child: Column(
           children: [

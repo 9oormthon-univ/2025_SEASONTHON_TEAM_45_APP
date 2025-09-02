@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../../core/widgets/gradient_background.dart';
 import '../../injection_container.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
@@ -67,13 +68,11 @@ class _LoginInputViewState extends State<LoginInputView> {
           final isLoading = state is AuthLoading;
           final errorMessage = state is AuthError ? state.message : null;
           
-          return Scaffold(
-            backgroundColor: AppColors.backgroundWhite,
-            body: SafeArea(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: ResponsiveUtils.defaultPadding(context),
-                  child: Column(
+          return GradientScaffold(
+            body: SingleChildScrollView(
+              child: Padding(
+                padding: ResponsiveUtils.defaultPadding(context),
+                child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
@@ -331,8 +330,7 @@ class _LoginInputViewState extends State<LoginInputView> {
             ),
           ),
         ),
-      ),
-    );
+      );
         },
       ),
     );
