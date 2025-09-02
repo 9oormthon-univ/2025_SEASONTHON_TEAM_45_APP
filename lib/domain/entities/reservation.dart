@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 class Reservation extends Equatable {
   final String id;
-  final String status; // confirmed, waiting, called, completed, cancelled
+  final String status; // SCHEDULED, ARRIVED, CALLED, COMPLETED, CANCELLED
   final String date;
   final String time;
   final String department;
@@ -12,6 +12,9 @@ class Reservation extends Equatable {
   final int? waitingNumber;
   final int? estimatedWaitTime;
   final String? message;
+  final int? appointmentId;  // API에서 사용하는 ID
+  final int? memberId;  // 회원 ID
+  final String? roomName;  // 진료실 이름 (호출 시 사용)
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -27,9 +30,16 @@ class Reservation extends Equatable {
     this.waitingNumber,
     this.estimatedWaitTime,
     this.message,
+    this.appointmentId,
+    this.memberId,
+    this.roomName,
     this.createdAt,
     this.updatedAt,
   });
+  
+  // 별칭 getter 추가 (API 호환성)
+  String get appointmentDate => date;
+  String get appointmentTime => time;
 
   @override
   List<Object?> get props => [
@@ -44,6 +54,9 @@ class Reservation extends Equatable {
         waitingNumber,
         estimatedWaitTime,
         message,
+        appointmentId,
+        memberId,
+        roomName,
         createdAt,
         updatedAt,
       ];
@@ -60,6 +73,9 @@ class Reservation extends Equatable {
     int? waitingNumber,
     int? estimatedWaitTime,
     String? message,
+    int? appointmentId,
+    int? memberId,
+    String? roomName,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -75,6 +91,9 @@ class Reservation extends Equatable {
       waitingNumber: waitingNumber ?? this.waitingNumber,
       estimatedWaitTime: estimatedWaitTime ?? this.estimatedWaitTime,
       message: message ?? this.message,
+      appointmentId: appointmentId ?? this.appointmentId,
+      memberId: memberId ?? this.memberId,
+      roomName: roomName ?? this.roomName,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

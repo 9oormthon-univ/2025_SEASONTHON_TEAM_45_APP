@@ -22,6 +22,8 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
     on<CancelReservation>(_onCancelReservation);
     on<UpdateReservationStatus>(_onUpdateReservationStatus);
     on<RefreshReservation>(_onRefreshReservation);
+    on<CheckInAppointment>(_onCheckInAppointment);
+    on<UpdateAppointmentStatus>(_onUpdateAppointmentStatus);
   }
 
   Future<void> _onLoadReservations(
@@ -30,12 +32,47 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
   ) async {
     emit(ReservationLoading());
     
-    final result = await getReservations();
+    // TODO: 실제 API 연동 전까지 임시 데이터 사용
+    final today = DateTime.now();
+    final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
     
-    result.fold(
-      (failure) => emit(ReservationError(message: _mapFailureToMessage(failure))),
-      (reservations) => emit(ReservationLoaded(reservations: reservations)),
-    );
+    // 테스트용 더미 데이터
+    final dummyReservations = [
+      Reservation(
+        id: '1',
+        appointmentId: 1,
+        memberId: 1,
+        status: 'SCHEDULED',
+        date: todayStr,
+        time: '14:30',
+        department: '내과',
+        hospitalName: '구름병원',
+        doctorName: '김의사',
+        message: '예약시간에 맞게 도착해 주세요',
+      ),
+      Reservation(
+        id: '2',
+        appointmentId: 2,
+        memberId: 1,
+        status: 'SCHEDULED',
+        date: '2025-09-05',
+        time: '10:00',
+        department: '정형외과',
+        hospitalName: '구름병원',
+        doctorName: '박의사',
+        message: '예약시간에 맞게 도착해 주세요',
+      ),
+    ];
+    
+    emit(ReservationLoaded(reservations: dummyReservations));
+    
+    // 실제 API 호출 (주석 처리)
+    // final result = await getReservations();
+    // 
+    // result.fold(
+    //   (failure) => emit(ReservationError(message: _mapFailureToMessage(failure))),
+    //   (reservations) => emit(ReservationLoaded(reservations: reservations)),
+    // );
   }
 
   Future<void> _onCreateReservation(
@@ -108,6 +145,54 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
   ) async {
     // TODO: 특정 예약 상태 새로고침
     add(LoadReservations());
+  }
+
+  Future<void> _onCheckInAppointment(
+    CheckInAppointment event,
+    Emitter<ReservationState> emit,
+  ) async {
+    // TODO: API 호출하여 체크인 처리
+    // 임시로 상태만 변경
+    if (state is ReservationLoaded) {
+      final currentState = state as ReservationLoaded;
+      final updatedReservations = currentState.reservations.map((reservation) {
+        if (reservation.appointmentId.toString() == event.appointmentId) {
+          return reservation.copyWith(
+            status: 'ARRIVED',
+            message: '병원에서 내원여부를 확인했어요',
+            updatedAt: DateTime.now(),
+          );
+        }
+        return reservation;
+      }).toList();
+      
+      emit(ReservationLoaded(reservations: updatedReservations));
+    }
+  }
+
+  Future<void> _onUpdateAppointmentStatus(
+    UpdateAppointmentStatus event,
+    Emitter<ReservationState> emit,
+  ) async {
+    if (state is ReservationLoaded) {
+      final currentState = state as ReservationLoaded;
+      final updatedReservations = currentState.reservations.map((reservation) {
+        if (reservation.appointmentId.toString() == event.appointmentId ||
+            reservation.id == event.appointmentId) {
+          return reservation.copyWith(
+            status: event.status,
+            roomName: event.roomName,
+            message: event.status == 'CALLED' 
+              ? '호출된 진료실로 와주세요!' 
+              : reservation.message,
+            updatedAt: DateTime.now(),
+          );
+        }
+        return reservation;
+      }).toList();
+      
+      emit(ReservationLoaded(reservations: updatedReservations));
+    }
   }
 
   String _mapFailureToMessage(Failure failure) {

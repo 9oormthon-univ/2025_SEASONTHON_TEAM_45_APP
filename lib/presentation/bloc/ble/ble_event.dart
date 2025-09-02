@@ -11,6 +11,10 @@ class StartBleScan extends BleEvent {}
 
 class StopBleScan extends BleEvent {}
 
+class StartScanning extends BleEvent {}
+
+class StopScanning extends BleEvent {}
+
 class CheckPermissions extends BleEvent {}
 
 class DevicesUpdated extends BleEvent {

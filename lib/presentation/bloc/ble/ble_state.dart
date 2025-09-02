@@ -44,3 +44,16 @@ class BleIdle extends BleState {
   @override
   List<Object> get props => [devices];
 }
+
+class HospitalBeaconDetected extends BleState {
+  final String deviceName;
+  final int rssi;
+
+  const HospitalBeaconDetected({
+    required this.deviceName,
+    required this.rssi,
+  });
+
+  @override
+  List<Object> get props => [deviceName, rssi];
+}

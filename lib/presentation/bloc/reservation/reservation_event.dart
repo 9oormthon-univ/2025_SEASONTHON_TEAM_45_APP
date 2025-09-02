@@ -82,3 +82,31 @@ class RefreshReservation extends ReservationEvent {
   @override
   List<Object?> get props => [reservationId];
 }
+
+class CheckInAppointment extends ReservationEvent {
+  final String appointmentId;
+  final String memberId;
+
+  const CheckInAppointment({
+    required this.appointmentId,
+    required this.memberId,
+  });
+
+  @override
+  List<Object?> get props => [appointmentId, memberId];
+}
+
+class UpdateAppointmentStatus extends ReservationEvent {
+  final String appointmentId;
+  final String status;
+  final String? roomName;
+
+  const UpdateAppointmentStatus({
+    required this.appointmentId,
+    required this.status,
+    this.roomName,
+  });
+
+  @override
+  List<Object?> get props => [appointmentId, status, roomName];
+}

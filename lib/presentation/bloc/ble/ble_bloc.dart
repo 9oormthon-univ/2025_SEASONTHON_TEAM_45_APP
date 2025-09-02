@@ -24,6 +24,8 @@ class BleBloc extends Bloc<BleEvent, BleState> {
     on<CheckPermissions>(_onCheckPermissions);
     on<StartBleScan>(_onStartBleScan);
     on<StopBleScan>(_onStopBleScan);
+    on<StartScanning>(_onStartScanning);
+    on<StopScanning>(_onStopScanning);
     on<DevicesUpdated>(_onDevicesUpdated);
   }
 
@@ -95,12 +97,43 @@ class BleBloc extends Bloc<BleEvent, BleState> {
     Emitter<BleState> emit,
   ) {
     _currentDevices = event.devices.cast<BleDevice>();
+    
+    // 병원 비콘 감지 로직
+    const targetServiceData = '354544344134343539434131'; // 병원 비콘 해시값
+    for (final device in _currentDevices) {
+      // Service Data 확인 (실제 구현은 BLE 패키지에 따라 다를 수 있음)
+      // 임시로 디바이스 이름이 'H'인 경우 병원 비콘으로 간주
+      if (device.name == 'H' && device.rssi > -100) {
+        emit(HospitalBeaconDetected(
+          deviceName: device.name,
+          rssi: device.rssi,
+        ));
+        return;
+      }
+    }
+    
     if (state is BleScanning) {
       emit(BleScanning(
         devices: _currentDevices,
         lastUpdate: DateTime.now(),
       ));
     }
+  }
+  
+  Future<void> _onStartScanning(
+    StartScanning event,
+    Emitter<BleState> emit,
+  ) async {
+    // StartBleScan과 동일한 동작
+    add(StartBleScan());
+  }
+  
+  Future<void> _onStopScanning(
+    StopScanning event,
+    Emitter<BleState> emit,
+  ) async {
+    // StopBleScan과 동일한 동작
+    add(StopBleScan());
   }
 
   @override
