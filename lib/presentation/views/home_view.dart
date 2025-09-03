@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../bloc/reservation/reservation_bloc.dart';
 import '../bloc/reservation/reservation_state.dart';
 import '../bloc/reservation/reservation_event.dart';
-import '../bloc/ble/ble_bloc.dart';
-import '../bloc/ble/ble_event.dart';
-import '../bloc/ble/ble_state.dart';
-import '../../injection_container.dart';
 import 'appointment_initial_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -22,99 +18,43 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  // 테스트 모드 설정
-  static const bool DEBUG_MODE = true; // 테스트 시 true, 배포 시 false
-  
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  String? _userName;
-  late BleBloc _bleBloc;
-  Timer? _statusCheckTimer;
+  int? _memberId;
   
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
-    _bleBloc = sl<BleBloc>();
-    context.read<ReservationBloc>().add(LoadReservations());
-    
-    // 주기적으로 예약 상태 확인 (30초마다)
-    _statusCheckTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      context.read<ReservationBloc>().add(LoadReservations());
-    });
   }
 
-  void _loadUserInfo() {
-    // TODO: 실제 로그인한 사용자 정보를 가져와야 함
-    setState(() {
-      _userName = '사용자';  // 임시로 기본값 사용
-    });
+  Future<void> _loadUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final memberId = prefs.getInt('member_id');
+    
+    if (mounted) {
+      setState(() {
+        _memberId = memberId;
+      });
+      
+      // memberId가 있으면 예약 목록 조회
+      if (memberId != null) {
+        context.read<ReservationBloc>().add(LoadReservations(memberId: memberId));
+      }
+    }
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    _statusCheckTimer?.cancel();
-    _bleBloc.close();
     super.dispose();
-  }
-
-  // BLE 스캔 시작 (오늘 예약이 SCHEDULED 상태일 때만)
-  void _startBleScanning(String appointmentId) {
-    // if (DEBUG_MODE) {
-    //   print('[BLE] 스캔 시작: 예약 ID $appointmentId');
-    // }
-    _bleBloc.add(StartScanning());
-  }
-
-  // BLE 스캔 중지
-  void _stopBleScanning() {
-    // if (DEBUG_MODE) {
-    //   print('[BLE] 스캔 중지');
-    // }
-    _bleBloc.add(StopScanning());
-  }
-
-  // 체크인 처리
-  void _handleCheckIn(String appointmentId, String memberId) async {
-    // if (DEBUG_MODE) {
-    //   print('[API] 체크인 요청: appointmentId=$appointmentId, memberId=$memberId');
-    // }
-    
-    // 체크인 API 호출
-    context.read<ReservationBloc>().add(CheckInAppointment(
-      appointmentId: appointmentId,
-      memberId: memberId,
-    ));
-    
-    // BLE 스캔 중지
-    _stopBleScanning();
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // 홈화면에서는 뒤로가기 방지
-        return false;
-      },
-      child: BlocProvider(
-        create: (_) => _bleBloc,
-        child: BlocListener<BleBloc, BleState>(
-          listener: (context, bleState) {
-            if (bleState is HospitalBeaconDetected) {
-              // BLE 비콘 감지 시 체크인
-              final reservation = (context.read<ReservationBloc>().state as ReservationLoaded)
-                  .reservations
-                  .firstWhere((r) => r.status == 'SCHEDULED' && _isToday(r.appointmentDate));
-              
-              _handleCheckIn(
-                reservation.appointmentId.toString(),
-                reservation.memberId.toString(),
-              );
-            }
-          },
-          child: GradientScaffold(
+    return PopScope(
+      canPop: false, // 홈화면에서는 뒤로가기 방지
+      child: GradientScaffold(
             body: Column(
               children: [
                 _buildHeader(context),
@@ -130,13 +70,6 @@ class _HomeViewState extends State<HomeView> {
                             if (sortedReservations.isEmpty) {
                               return _buildEmptyState(context);
                             } else {
-                              // 오늘 예약이 SCHEDULED 상태면 BLE 스캔 시작
-                              final todayReservation = sortedReservations.first;
-                              if (_isToday(todayReservation.appointmentDate) && 
-                                  todayReservation.status == 'SCHEDULED') {
-                                _startBleScanning(todayReservation.appointmentId.toString());
-                              }
-                              
                               return _buildReservationPages(context, sortedReservations);
                             }
                           } else if (state is ReservationError) {
@@ -149,8 +82,6 @@ class _HomeViewState extends State<HomeView> {
                 _buildBottomButton(context),
               ],
             ),
-          ),
-        ),
       ),
     );
   }
@@ -165,12 +96,6 @@ class _HomeViewState extends State<HomeView> {
       ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
     
     return [...todayReservations, ...futureReservations];
-  }
-
-  bool _isToday(String date) {
-    final today = DateTime.now();
-    final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-    return date == todayStr;
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -222,46 +147,20 @@ class _HomeViewState extends State<HomeView> {
       child: Column(
         children: [
           _buildCard(context, _buildEmptyContent(context)),
-          const Spacer(),
-          // 테스트 버튼들
-          if (DEBUG_MODE) ...[
-            _buildTestButtons(context),
-          ],
+          SizedBox(height: ResponsiveUtils.heightPercent(context, 3)), // 화면 높이의 3%
         ],
       ),
     );
   }
 
   Widget _buildEmptyContent(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SvgPicture.asset(
-          'assets/images/Cloud (2).svg',
-          width: 60,
-          height: 60,
-          colorFilter: const ColorFilter.mode(
-            AppColors.primaryGreen,
-            BlendMode.srcIn,
-          ),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          '아직 확인된 예약이 없어요.',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '예약하기를 눌러 진행해 주세요.',
-          style: TextStyle(
-            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
+    return Center(
+      child: SvgPicture.asset(
+        'assets/images/No reservation.svg',
+        width: MediaQuery.of(context).size.width - ResponsiveUtils.widthPercent(context, 20), // 좌우 여백 10%씩
+        height: ResponsiveUtils.heightPercent(context, 40), // 카드 내부 높이의 약 80%
+        fit: BoxFit.contain,
+      ),
     );
   }
 
@@ -294,11 +193,7 @@ class _HomeViewState extends State<HomeView> {
       child: Column(
         children: [
           _buildCard(context, _buildReservationContent(context, reservation)),
-          const Spacer(),
-          // 테스트 버튼들
-          if (DEBUG_MODE) ...[
-            _buildTestButtons(context),
-          ],
+          SizedBox(height: ResponsiveUtils.heightPercent(context, 3)), // 화면 높이의 3%
         ],
       ),
     );
@@ -326,7 +221,7 @@ class _HomeViewState extends State<HomeView> {
                 vertical: ResponsiveUtils.heightPercent(context, 6), // 카드 내부 상하 여백 6%
               ),
             child: SingleChildScrollView(
-              physics: NeverScrollableScrollPhysics(), // 스크롤 비활성화 (오버플로우만 방지)
+              physics: const NeverScrollableScrollPhysics(), // 스크롤 비활성화 (오버플로우만 방지)
               child: content,
             ),
           ),
@@ -346,11 +241,11 @@ class _HomeViewState extends State<HomeView> {
           padding: EdgeInsets.only(
             bottom: ResponsiveUtils.spacing(context, SpacingSize.lg),
           ),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             border: Border(
               bottom: BorderSide(
                 width: 1,
-                color: const Color(0xFFC9CCCB),
+                color: Color(0xFFC9CCCB),
               ),
             ),
           ),
@@ -454,6 +349,7 @@ class _HomeViewState extends State<HomeView> {
         svgPath = 'assets/images/상태 아이콘/Vector.svg';
         text = '예약 완료';
         break;
+      case 'CHECKED_IN':
       case 'ARRIVED':
         svgPath = 'assets/images/상태 아이콘/DotsThree.svg';
         text = '대기 중';
@@ -463,7 +359,10 @@ class _HomeViewState extends State<HomeView> {
         text = '호출됨';
         break;
       default:
-        return const SizedBox.shrink();
+        // 기본값으로 예약 완료 표시
+        svgPath = 'assets/images/상태 아이콘/Vector.svg';
+        text = '예약 완료';
+        break;
     }
     
     return Row(
@@ -591,7 +490,6 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-
   String _formatDate(String date) {
     // 2024-12-31 -> 2024년 12월 31일
     final parts = date.split('-');
@@ -631,7 +529,7 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildPageIndicator(int pageCount) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 8), // 페이지 인디케이터는 고정값 사용
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(
@@ -654,7 +552,7 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildBottomButton(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.md)),
+      padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.lg)),
       child: SizedBox(
         width: double.infinity,
         height: ResponsiveUtils.buttonHeight(context),
@@ -694,70 +592,17 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  // 테스트용 버튼들
-  Widget _buildTestButtons(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                // 테스트: 체크인 상태로 변경
-                context.read<ReservationBloc>().add(UpdateAppointmentStatus(
-                  appointmentId: '1',
-                  status: 'ARRIVED',
-                ));
-              },
-              child: const Text('체크인'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // 테스트: 호출 알림 시뮬레이션
-                _handleCallNotification({
-                  'type': 'CALL',
-                  'appointmentId': '1',
-                  'roomName': '내과',
-                  'status': 'CALLED',
-                });
-              },
-              child: const Text('호출 알림'),
-            ),
-          ],
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            // 테스트 데이터 초기화
-            context.read<ReservationBloc>().add(LoadReservations());
-          },
-          child: const Text('새로고침'),
-        ),
-      ],
-    );
-  }
-
-  // FCM 호출 알림 처리
-  void _handleCallNotification(Map<String, dynamic> data) {
-    if (data['type'] == 'CALL') {
-      context.read<ReservationBloc>().add(UpdateAppointmentStatus(
-        appointmentId: data['appointmentId'],
-        status: 'CALLED',
-        roomName: data['roomName'],
-      ));
-    }
-  }
-
-
   String _getStatusMessage(String status) {
     switch (status) {
       case 'SCHEDULED':
         return '예약시간에 맞게 도착해 주세요';
+      case 'CHECKED_IN':
       case 'ARRIVED':
         return '병원에서 내원여부를 확인했어요';
       case 'CALLED':
         return '호출된 진료실로 와주세요!';
       default:
-        return '';
+        return '예약시간에 맞게 도착해 주세요';
     }
   }
 }

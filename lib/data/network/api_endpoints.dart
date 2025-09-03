@@ -23,6 +23,8 @@ class ApiEndpoints {
   static const String appointmentList = '/api/v1/appointments';
   static const String appointmentDetail = '/api/v1/appointments';
   static const String cancelAppointment = '/api/v1/appointments';
+  static const String myTodayAppointments = '/api/v1/appointments/my/today';
+  static const String myAllAppointments = '/api/v1/appointments/my';
   
   // Time Slot Endpoints
   static const String availableTimeSlots = '/api/v1/patient/time-slots';

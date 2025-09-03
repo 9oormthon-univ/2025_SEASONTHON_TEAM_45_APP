@@ -13,7 +13,7 @@ class ReservationInitial extends ReservationState {}
 class ReservationLoading extends ReservationState {}
 
 class ReservationLoaded extends ReservationState {
-  final List<Reservation> reservations;
+  final List<dynamic> reservations; // AppointmentModel \ubc0f Reservation \ubaa8\ub450 \uc9c0\uc6d0
 
   const ReservationLoaded({required this.reservations});
 
