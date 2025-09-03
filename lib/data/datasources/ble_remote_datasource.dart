@@ -30,24 +30,24 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
         for (ScanResult result in results) {
           // 디버그: 모든 스캔된 디바이스 출력
           final deviceName = result.device.platformName;
-          print('[DEBUG] 스캔된 디바이스: $deviceName, RSSI: ${result.rssi}');
+          // print('[DEBUG] 스캔된 디바이스: $deviceName, RSSI: ${result.rssi}');
           
           // Advertisement Data 확인
           final advertisementData = result.advertisementData;
-          print('[DEBUG] Complete Local Name: ${advertisementData.advName}');
-          print('[DEBUG] Service UUIDs: ${advertisementData.serviceUuids}');
-          print('[DEBUG] Service Data: ${advertisementData.serviceData}');
-          print('[DEBUG] Manufacturer Data: ${advertisementData.manufacturerData}');
-          print('[DEBUG] Connectable: ${advertisementData.connectable}');
+          // print('[DEBUG] Complete Local Name: ${advertisementData.advName}');
+          // print('[DEBUG] Service UUIDs: ${advertisementData.serviceUuids}');
+          // print('[DEBUG] Service Data: ${advertisementData.serviceData}');
+          // print('[DEBUG] Manufacturer Data: ${advertisementData.manufacturerData}');
+          // print('[DEBUG] Connectable: ${advertisementData.connectable}');
           
           // iOS 전용: Service UUID 확인
-          for (var uuid in advertisementData.serviceUuids) {
-            print('[DEBUG] Found Service UUID: $uuid');
-          }
+          // for (var uuid in advertisementData.serviceUuids) {
+          //   print('[DEBUG] Found Service UUID: $uuid');
+          // }
           
           // RSSI 필터링
           if (result.rssi < rssiThreshold) {
-            print('[DEBUG] RSSI 필터링됨: $deviceName (RSSI: ${result.rssi} < $rssiThreshold)');
+            // print('[DEBUG] RSSI 필터링됨: $deviceName (RSSI: ${result.rssi} < $rssiThreshold)');
             continue;
           }
           
@@ -62,7 +62,7 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
             for (var entry in advertisementData.serviceData.entries) {
               final dataString = String.fromCharCodes(entry.value);
               final dataHex = entry.value.map((b) => b.toRadixString(16).padLeft(2, '0')).join().toUpperCase();
-              print('[DEBUG] Service Data String: $dataString, Hex: $dataHex');
+              // print('[DEBUG] Service Data String: $dataString, Hex: $dataHex');
               if (CryptoUtils.verifyHospitalBeacon(dataString) || CryptoUtils.verifyHospitalBeacon(dataHex)) {
                 isValidHospital = true;
                 break;
@@ -75,7 +75,7 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
             for (var entry in advertisementData.manufacturerData.entries) {
               final dataString = String.fromCharCodes(entry.value);
               final dataHex = entry.value.map((b) => b.toRadixString(16).padLeft(2, '0')).join().toUpperCase();
-              print('[DEBUG] Manufacturer Data String: $dataString, Hex: $dataHex');
+              // print('[DEBUG] Manufacturer Data String: $dataString, Hex: $dataHex');
               if (CryptoUtils.verifyHospitalBeacon(dataString) || CryptoUtils.verifyHospitalBeacon(dataHex)) {
                 isValidHospital = true;
                 break;
@@ -83,14 +83,14 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
             }
           }
           
-          print('[DEBUG] 최종 검증 결과: $isValidHospital');
+          // print('[DEBUG] 최종 검증 결과: $isValidHospital');
           
           if (isValidHospital) {
-            print('====================================');
-            print('[BLE] 병원 비콘 감지!');
-            print('Device: $deviceName');
-            print('RSSI: ${result.rssi}');
-            print('====================================');
+            // print('====================================');
+            // print('[BLE] 병원 비콘 감지!');
+            // print('Device: $deviceName');
+            // print('RSSI: ${result.rssi}');
+            // print('====================================');
             
             final device = BleDeviceModel.fromScanResult(result);
             _foundDevices[device.id] = device;
@@ -111,7 +111,7 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
         }
       },
       onError: (error) {
-        print('[BLE] 스캔 에러: $error');
+        // print('[BLE] 스캔 에러: $error');
       },
     );
     

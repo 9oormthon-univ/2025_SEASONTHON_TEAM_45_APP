@@ -12,6 +12,7 @@ import '../bloc/ble/ble_bloc.dart';
 import '../bloc/ble/ble_event.dart';
 import '../bloc/ble/ble_state.dart';
 import '../../injection_container.dart';
+import 'booking_initial_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -60,25 +61,25 @@ class _HomeViewState extends State<HomeView> {
 
   // BLE 스캔 시작 (오늘 예약이 SCHEDULED 상태일 때만)
   void _startBleScanning(String appointmentId) {
-    if (DEBUG_MODE) {
-      print('[BLE] 스캔 시작: 예약 ID $appointmentId');
-    }
+    // if (DEBUG_MODE) {
+    //   print('[BLE] 스캔 시작: 예약 ID $appointmentId');
+    // }
     _bleBloc.add(StartScanning());
   }
 
   // BLE 스캔 중지
   void _stopBleScanning() {
-    if (DEBUG_MODE) {
-      print('[BLE] 스캔 중지');
-    }
+    // if (DEBUG_MODE) {
+    //   print('[BLE] 스캔 중지');
+    // }
     _bleBloc.add(StopScanning());
   }
 
   // 체크인 처리
   void _handleCheckIn(String appointmentId, String memberId) async {
-    if (DEBUG_MODE) {
-      print('[API] 체크인 요청: appointmentId=$appointmentId, memberId=$memberId');
-    }
+    // if (DEBUG_MODE) {
+    //   print('[API] 체크인 요청: appointmentId=$appointmentId, memberId=$memberId');
+    // }
     
     // 체크인 API 호출
     context.read<ReservationBloc>().add(CheckInAppointment(
@@ -659,9 +660,11 @@ class _HomeViewState extends State<HomeView> {
         height: ResponsiveUtils.buttonHeight(context),
         child: ElevatedButton(
           onPressed: () {
-            // TODO: 예약하기 화면으로 이동
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('예약하기 화면은 추후 구현 예정입니다')),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const BookingInitialView(),
+              ),
             );
           },
           style: ElevatedButton.styleFrom(
