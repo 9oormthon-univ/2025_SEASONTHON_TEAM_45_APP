@@ -21,9 +21,9 @@ class CryptoUtils {
     final expectedPrefix = getExpectedHashPrefix();
     final deviceNameUpper = deviceName.toUpperCase();
     
-    print('[CryptoUtils] Expected: $expectedPrefix');
-    print('[CryptoUtils] Device: $deviceNameUpper');
-    print('[CryptoUtils] Match: ${deviceNameUpper.startsWith(expectedPrefix)}');
+    // print('[CryptoUtils] Expected: $expectedPrefix');
+    // print('[CryptoUtils] Device: $deviceNameUpper');
+    // print('[CryptoUtils] Match: ${deviceNameUpper.startsWith(expectedPrefix)}');
     
     // 디바이스 이름이 예상 해시 prefix로 시작하는지 확인
     return deviceNameUpper.startsWith(expectedPrefix);
@@ -31,11 +31,11 @@ class CryptoUtils {
   
   static void printHashForNRFConnect() {
     final prefix = getExpectedHashPrefix();
-    print('====================================');
-    print('[nRF Connect 설정]');
-    print('Complete Local Name에 입력할 값:');
-    print(prefix);
-    print('(SHA-256 해시 상위 6바이트)');
-    print('====================================');
+    // print('====================================');
+    // print('[nRF Connect 설정]');
+    // print('Complete Local Name에 입력할 값:');
+    // print(prefix);
+    // print('(SHA-256 해시 상위 6바이트)');
+    // print('====================================');
   }
 }

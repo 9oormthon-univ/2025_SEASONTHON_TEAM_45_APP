@@ -11,12 +11,12 @@ class ApiService {
   }) async {
     try {
       // 개발 모드에서는 로그만 출력
-      print('====================================');
-      print('[API] 환자 도착 알림 전송');
-      print('Patient ID: $patientId');
-      print('Hospital ID: $hospitalId');
-      print('RSSI: $rssi');
-      print('====================================');
+      // print('====================================');
+      // print('[API] 환자 도착 알림 전송');
+      // print('Patient ID: $patientId');
+      // print('Hospital ID: $hospitalId');
+      // print('RSSI: $rssi');
+      // print('====================================');
       
       // TODO: 실제 API 구현
       // final response = await http.post(
