@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/utils/responsive_utils.dart';
+import '../../core/widgets/gradient_background.dart';
+import '../widgets/custom_back_button.dart';
 import '../../injection_container.dart';
 import '../bloc/booking/booking_bloc.dart';
 import '../bloc/booking/booking_event.dart';
@@ -17,6 +20,7 @@ class GeneralAppointmentView extends StatefulWidget {
 }
 
 class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
+  // ======================== 하드코딩 진료과 목록 ========================
   final List<String> departments = [
     '내과',
     '외과',
@@ -24,6 +28,7 @@ class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
     '피부과',
     '이비인후과'
   ];
+  // ====================================================================
 
   String? selectedDepartment;
   DateTime selectedDate = DateTime.now();
@@ -47,321 +52,389 @@ class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<BookingBloc>(),
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text(
-            '일반 예약',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        body: BlocConsumer<BookingBloc, BookingState>(
-          listener: (context, state) {
-            if (state is AppointmentCreated) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (_) => AppointmentCompletionView(
-                    appointmentId: state.appointmentId,
-                    department: selectedDepartment!,
-                    date: selectedDate,
-                    time: selectedTime!,
-                  ),
-                ),
-              );
-            } else if (state is BookingError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          },
-          builder: (context, state) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildStepCard(
-                    step: '1',
-                    title: '진료과 선택',
-                    child: _buildDepartmentSelection(context),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildStepCard(
-                    step: '2',
-                    title: '날짜 선택',
-                    enabled: selectedDepartment != null,
-                    child: _buildDateSelection(context),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildStepCard(
-                    step: '3',
-                    title: '시간 선택',
-                    enabled: selectedDepartment != null && selectedDate != null,
-                    child: _buildTimeSelection(context, state),
-                  ),
-                  const SizedBox(height: 30),
-                  _buildConfirmButton(context, state),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStepCard({
-    required String step,
-    required String title,
-    required Widget child,
-    bool enabled = true,
-  }) {
-    return Opacity(
-      opacity: enabled ? 1.0 : 0.5,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: enabled ? AppColors.primary : Colors.grey,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      step,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+      child: GradientScaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              // ======================== 상단 헤더 ========================
+              Padding(
+                padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.md)),
+                child: Row(
+                  children: [
+                    const CustomBackButton(),
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          '일반 예약',
+                          style: TextStyle(
+                            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 48), // 균형 맞추기용
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: enabled ? AppColors.textPrimary : Colors.grey,
-                  ),
+              ),
+              // ==========================================================
+
+              // ======================== 메인 컨텐츠 ========================
+              Expanded(
+                child: BlocConsumer<BookingBloc, BookingState>(
+                  listener: (context, state) {
+                    if (state is AppointmentCreated) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => AppointmentCompletionView(
+                            appointmentId: state.appointmentId,
+                            department: selectedDepartment!,
+                            date: selectedDate,
+                            time: selectedTime!,
+                          ),
+                        ),
+                      );
+                    } else if (state is BookingError) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.message),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  builder: (context, state) {
+                    return SingleChildScrollView(
+                      padding: ResponsiveUtils.defaultPadding(context),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ============ STEP 1: 진료과 선택 ============
+                          _buildDepartmentSection(context),
+                          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+
+                          // ============ STEP 2: 날짜 선택 ============
+                          if (selectedDepartment != null)
+                            _buildDateSection(context),
+                          if (selectedDepartment != null)
+                            SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+
+                          // ============ STEP 3: 시간 선택 ============
+                          if (selectedDepartment != null && selectedDate != null)
+                            _buildTimeSection(context, state),
+                          if (selectedDepartment != null && selectedDate != null)
+                            SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+
+                          // ============ 예약 확인 버튼 ============
+                          if (selectedDepartment != null && selectedDate != null && selectedTime != null)
+                            _buildConfirmButton(context, state),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (enabled) child,
-          ],
+              ),
+              // ===========================================================
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildDepartmentSelection(BuildContext context) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: departments.map((dept) {
-        final isSelected = selectedDepartment == dept;
-        return InkWell(
-          onTap: () {
-            setState(() {
-              selectedDepartment = dept;
-              selectedTime = null;
-            });
-            context.read<BookingBloc>().add(SelectDepartmentEvent(dept));
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary : AppColors.background,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.grey.shade300,
-              ),
-            ),
-            child: Text(
-              dept,
-              style: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textPrimary,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildDateSelection(BuildContext context) {
-    if (selectedDepartment == null) return const SizedBox.shrink();
-    
+  // ======================== 진료과 선택 섹션 ========================
+  Widget _buildDepartmentSection(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              DateFormat('yyyy년 MM월 dd일').format(selectedDate),
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            TextButton.icon(
-              icon: const Icon(Icons.calendar_today, size: 20),
-              label: const Text('날짜 변경'),
-              onPressed: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: selectedDate,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 30)),
-                );
-                if (date != null) {
-                  setState(() {
-                    selectedDate = date;
-                    selectedTime = null;
-                  });
-                  context.read<BookingBloc>().add(SelectDateEvent(date));
-                  context.read<BookingBloc>().add(
-                    LoadAvailableTimeSlotsEvent(
-                      hospitalId: 1,
-                      departmentName: selectedDepartment!,
-                      date: DateFormat('yyyy-MM-dd').format(date),
-                    ),
-                  );
-                }
+        // 제목: "진료과 선택"
+        Text(
+          '진료과 선택',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+        
+        // 진료과 버튼들 (Wrap으로 배치)
+        Wrap(
+          spacing: ResponsiveUtils.spacing(context, SpacingSize.sm), // 가로 간격
+          runSpacing: ResponsiveUtils.spacing(context, SpacingSize.sm), // 세로 간격
+          children: departments.map((dept) {
+            final isSelected = selectedDepartment == dept;
+            return InkWell(
+              onTap: () {
+                setState(() {
+                  selectedDepartment = dept;
+                  selectedTime = null; // 진료과 변경시 시간 초기화
+                });
+                context.read<BookingBloc>().add(SelectDepartmentEvent(dept));
               },
-            ),
-          ],
+              borderRadius: BorderRadius.circular(100), // Pill shape
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.spacing(context, SpacingSize.md),
+                  vertical: ResponsiveUtils.spacing(context, SpacingSize.sm),
+                ),
+                decoration: BoxDecoration(
+                  // 선택됨: 초록색 배경 / 미선택: 흰색 배경 + 회색 테두리
+                  color: isSelected ? AppColors.primaryGreen : Colors.white,
+                  borderRadius: BorderRadius.circular(100), // Pill shape
+                  border: Border.all(
+                    color: isSelected ? AppColors.primaryGreen : AppColors.grayLight,
+                    width: 1.5,
+                  ),
+                ),
+                child: Text(
+                  dept,
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    // 선택됨: 흰색 글자 / 미선택: 회색 글자
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );
   }
+  // ================================================================
 
-  Widget _buildTimeSelection(BuildContext context, BookingState state) {
-    if (selectedDepartment == null) return const SizedBox.shrink();
-    
-    if (state is BookingLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      );
-    }
-    
-    if (state is TimeSlotsLoaded) {
-      if (state.timeSlotResponse.timeSlots.isEmpty) {
-        return const Center(
-          child: Text(
-            '예약 가능한 시간이 없습니다',
-            style: TextStyle(color: Colors.grey),
+  // ======================== 날짜 선택 섹션 ========================
+  Widget _buildDateSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 제목: "날짜 선택"
+        Text(
+          '날짜 선택',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
           ),
-        );
-      }
-      
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          childAspectRatio: 2.5,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
         ),
-        itemCount: state.timeSlotResponse.timeSlots.length,
-        itemBuilder: (context, index) {
-          final slot = state.timeSlotResponse.timeSlots[index];
-          final isSelected = selectedTime == slot.time;
-          final isAvailable = slot.available;
-          
-          return InkWell(
-            onTap: isAvailable ? () {
-              setState(() {
-                selectedTime = slot.time;
-              });
-              context.read<BookingBloc>().add(SelectTimeSlotEvent(slot.time));
-            } : null,
-            child: Container(
-              decoration: BoxDecoration(
-                color: isSelected 
-                  ? AppColors.primary 
-                  : (isAvailable ? AppColors.background : Colors.grey.shade200),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isSelected 
-                    ? AppColors.primary 
-                    : (isAvailable ? Colors.grey.shade300 : Colors.transparent),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
+        
+        // 날짜 표시 카드
+        Container(
+          padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.md)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
+            border: Border.all(
+              color: AppColors.grayLight,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                DateFormat('yyyy년 MM월 dd일').format(selectedDate),
+                style: TextStyle(
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
                 ),
               ),
-              child: Center(
-                child: Text(
-                  slot.time,
+              TextButton.icon(
+                icon: Icon(
+                  Icons.calendar_today,
+                  size: 20,
+                  color: AppColors.primaryGreen,
+                ),
+                label: Text(
+                  '날짜 변경',
                   style: TextStyle(
-                    color: isSelected 
-                      ? Colors.white 
-                      : (isAvailable ? AppColors.textPrimary : Colors.grey),
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                    color: AppColors.primaryGreen,
                   ),
                 ),
+                onPressed: () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 30)),
+                  );
+                  if (date != null && mounted) {
+                    setState(() {
+                      selectedDate = date;
+                      selectedTime = null; // 날짜 변경시 시간 초기화
+                    });
+                    context.read<BookingBloc>().add(SelectDateEvent(date));
+                    context.read<BookingBloc>().add(
+                      LoadAvailableTimeSlotsEvent(
+                        hospitalId: 1, // 하드코딩된 병원 ID
+                        departmentName: selectedDepartment!,
+                        date: DateFormat('yyyy-MM-dd').format(date),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+  // ================================================================
+
+  // ======================== 시간 선택 섹션 ========================
+  Widget _buildTimeSection(BuildContext context, BookingState state) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 제목: "시간 선택"
+        Text(
+          '시간 선택',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
+        
+        // 시간 선택 내용
+        if (state is BookingLoading)
+          Center(
+            child: CircularProgressIndicator(
+              color: AppColors.primaryGreen,
+            ),
+          )
+        else if (state is TimeSlotsLoaded)
+          _buildTimeGrid(context, state)
+        else
+          // 시간대 조회 버튼
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                context.read<BookingBloc>().add(
+                  LoadAvailableTimeSlotsEvent(
+                    hospitalId: 1, // 하드코딩된 병원 ID
+                    departmentName: selectedDepartment!,
+                    date: DateFormat('yyyy-MM-dd').format(selectedDate),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryGreen,
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.spacing(context, SpacingSize.xl),
+                  vertical: ResponsiveUtils.spacing(context, SpacingSize.md),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
+                ),
+              ),
+              child: Text(
+                '시간대 조회',
+                style: TextStyle(
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ),
-          );
-        },
-      );
-    }
-    
-    return Center(
-      child: TextButton(
-        onPressed: selectedDepartment != null ? () {
-          context.read<BookingBloc>().add(
-            LoadAvailableTimeSlotsEvent(
-              hospitalId: 1,
-              departmentName: selectedDepartment!,
-              date: DateFormat('yyyy-MM-dd').format(selectedDate),
-            ),
-          );
-        } : null,
-        child: const Text('시간대 조회'),
-      ),
+          ),
+      ],
     );
   }
 
+  // 시간 그리드 표시
+  Widget _buildTimeGrid(BuildContext context, TimeSlotsLoaded state) {
+    if (state.timeSlotResponse.timeSlots.isEmpty) {
+      return Center(
+        child: Text(
+          '예약 가능한 시간이 없습니다',
+          style: TextStyle(
+            fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+            color: AppColors.textSecondary,
+          ),
+        ),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 2.5,
+        crossAxisSpacing: ResponsiveUtils.spacing(context, SpacingSize.sm),
+        mainAxisSpacing: ResponsiveUtils.spacing(context, SpacingSize.sm),
+      ),
+      itemCount: state.timeSlotResponse.timeSlots.length,
+      itemBuilder: (context, index) {
+        final slot = state.timeSlotResponse.timeSlots[index];
+        final isSelected = selectedTime == slot.time;
+        final isAvailable = slot.available;
+
+        return InkWell(
+          onTap: isAvailable ? () {
+            setState(() {
+              selectedTime = slot.time;
+            });
+            context.read<BookingBloc>().add(SelectTimeSlotEvent(slot.time));
+          } : null,
+          borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isSelected 
+                ? AppColors.primaryGreen
+                : (isAvailable ? Colors.white : Colors.grey.shade100),
+              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+              border: Border.all(
+                color: isSelected
+                  ? AppColors.primaryGreen
+                  : (isAvailable ? AppColors.grayLight : Colors.transparent),
+                width: 1,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                slot.time.substring(0, 5), // HH:mm 형식으로 표시
+                style: TextStyle(
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected 
+                    ? Colors.white
+                    : (isAvailable ? AppColors.textPrimary : AppColors.textSecondary),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+  // ================================================================
+
+  // ======================== 예약 확인 버튼 ========================
   Widget _buildConfirmButton(BuildContext context, BookingState state) {
     final isEnabled = selectedDepartment != null && 
                       selectedDate != null && 
                       selectedTime != null &&
                       memberId != null;
-    
+
     return SizedBox(
       width: double.infinity,
-      height: 56,
+      height: ResponsiveUtils.buttonHeight(context),
       child: ElevatedButton(
-        onPressed: isEnabled ? () {
+        onPressed: isEnabled && state is! BookingLoading ? () {
           context.read<BookingBloc>().add(
             CreateAppointmentEvent(
               memberId: memberId!,
-              hospitalId: 1,
+              hospitalId: 1, // 하드코딩된 병원 ID
               departmentName: selectedDepartment!,
               appointmentDate: DateFormat('yyyy-MM-dd').format(selectedDate),
               appointmentTime: selectedTime!,
@@ -369,23 +442,32 @@ class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
           );
         } : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          disabledBackgroundColor: Colors.grey.shade300,
+          backgroundColor: AppColors.primaryGreen,
+          disabledBackgroundColor: AppColors.grayLight,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
           ),
+          elevation: 0,
         ),
         child: state is BookingLoading 
-          ? const CircularProgressIndicator(color: Colors.white)
-          : const Text(
-            '예약 확인',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+          ? SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            )
+          : Text(
+              '예약 확인',
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
             ),
-          ),
       ),
     );
   }
+  // ================================================================
 }
