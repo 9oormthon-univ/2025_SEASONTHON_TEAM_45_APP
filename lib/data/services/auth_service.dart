@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/auth_token_model.dart';
 import '../models/login_request_model.dart';
+import '../models/login_response_model.dart';
 import '../models/register_request_model.dart';
 import '../network/api_endpoints.dart';
 
@@ -76,7 +77,7 @@ class AuthService {
   }
   
   // 로그인
-  Future<AuthTokenModel?> login(LoginRequestModel request) async {
+  Future<LoginResponseModel?> login(LoginRequestModel request) async {
     try {
       // 요청 정보 출력 (디버깅용)
       print('=== 로그인 요청 ===');
@@ -104,23 +105,25 @@ class AuthService {
         
         // 성공 코드 확인 (AUTH_2002가 성공)
         if (code == 'AUTH_2002' && data != null) {
-          // data 필드에서 토큰 정보 추출
+          // 토큰 및 사용자 정보 저장
           final tokens = AuthTokenModel.fromJson(data);
           await _saveTokens(tokens);
           print('=== 토큰 저장 완료 ===');
           print('Access Token: ${tokens.accessToken.substring(0, 20)}...');
-          return tokens;
+          
+          // 로그인 응답 모델 반환
+          return LoginResponseModel.fromJson(responseData);
         } else {
-          // 서버가 200을 반환했지만 실제로는 에러
+          // 서버가 200을 반환했지만 실제로는 에러 (사용자 친화적 메시지로 변경)
           print('=== 로그인 실패 (서버 에러 코드) ===');
           if (code == 'MEMBER_NOT_FOUND') {
-            throw Exception('등록되지 않은 전화번호입니다.');
+            throw Exception('회원가입이 필요합니다.\n지금 바로 가입하시겠습니까?');
           } else if (code == 'INVALID_PASSWORD') {
-            throw Exception('비밀번호가 틀렸습니다.');
+            throw Exception('비밀번호를 다시 확인해주세요.');
           } else if (code == 'REQUIRED_FIELD_MISSING') {
-            throw Exception(message ?? '필수 필드가 누락되었습니다.');
+            throw Exception('올바른 전화번호 형식을 입력해주세요.\n(예: 01012345678)');
           } else {
-            throw Exception(message ?? '로그인에 실패했습니다.');
+            throw Exception(message ?? '로그인할 수 없습니다.\n잠시 후 다시 시도해주세요.');
           }
         }
       }
@@ -266,12 +269,15 @@ class AuthService {
     
     if (phoneNumber == null || password == null) return false;
     
-    final tokens = await login(LoginRequestModel(
+    print('=== 자동 로그인 시도 ===');
+    print('Phone: $phoneNumber');
+    
+    final result = await login(LoginRequestModel(
       phoneNumber: phoneNumber,
       password: password,
     ));
     
-    return tokens != null;
+    return result != null;
   }
   
   // 자동 로그인 설정
