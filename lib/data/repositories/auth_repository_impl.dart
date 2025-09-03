@@ -26,6 +26,10 @@ class AuthRepositoryImpl implements AuthRepository {
       // 실제 백엔드 서버 연동
       const bool useLocalStorage = false;
       
+      print('=== AuthRepository 로그인 시작 ===');
+      print('Phone: $phoneNumber');
+      print('UseLocalStorage: $useLocalStorage');
+      
       if (!useLocalStorage) {
         final tokens = await authService.login(
           LoginRequestModel(
@@ -35,6 +39,8 @@ class AuthRepositoryImpl implements AuthRepository {
         );
         
         if (tokens != null) {
+          print('=== 로그인 성공 ===');
+          print('Token received: ${tokens.accessToken != null}');
           return Right(User(
             id: phoneNumber,
             name: '',
@@ -43,6 +49,7 @@ class AuthRepositoryImpl implements AuthRepository {
             refreshToken: tokens.refreshToken,
           ));
         }
+        print('=== 토큰이 null - 로그인 실패 ===');
         return const Left(ServerFailure('로그인에 실패했습니다.'));
       }
       
@@ -59,6 +66,10 @@ class AuthRepositoryImpl implements AuthRepository {
       } else {
         return const Left(ServerFailure('휴대폰 번호 혹은 비밀번호가 틀립니다.'));
       }
+    } on Exception catch (e) {
+      // AuthService에서 throw한 Exception의 메시지를 그대로 전달
+      final message = e.toString().replaceFirst('Exception: ', '');
+      return Left(ServerFailure(message));
     } catch (e) {
       return const Left(ServerFailure('로그인 중 오류가 발생했습니다.'));
     }

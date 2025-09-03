@@ -78,19 +78,84 @@ class AuthService {
   // 로그인
   Future<AuthTokenModel?> login(LoginRequestModel request) async {
     try {
+      // 요청 정보 출력 (디버깅용)
+      print('=== 로그인 요청 ===');
+      print('URL: ${ApiEndpoints.baseUrl}${ApiEndpoints.login}');
+      print('Request Data: ${request.toJson()}');
+      
       final response = await _dio.post(
         ApiEndpoints.login,
         data: request.toJson(),
       );
       
+      // 응답 정보 출력 (디버깅용)
+      print('=== 로그인 응답 ===');
+      print('Status Code: ${response.statusCode}');
+      print('Response Data: ${response.data}');
+      
       if (response.statusCode == 200) {
-        final tokens = AuthTokenModel.fromJson(response.data);
-        await _saveTokens(tokens);
-        return tokens;
+        final responseData = response.data;
+        final code = responseData['code'];
+        final message = responseData['message'];
+        final data = responseData['data'];
+        
+        print('Response Code: $code');
+        print('Response Message: $message');
+        
+        // 성공 코드 확인 (AUTH_2002가 성공)
+        if (code == 'AUTH_2002' && data != null) {
+          // data 필드에서 토큰 정보 추출
+          final tokens = AuthTokenModel.fromJson(data);
+          await _saveTokens(tokens);
+          print('=== 토큰 저장 완료 ===');
+          print('Access Token: ${tokens.accessToken.substring(0, 20)}...');
+          return tokens;
+        } else {
+          // 서버가 200을 반환했지만 실제로는 에러
+          print('=== 로그인 실패 (서버 에러 코드) ===');
+          if (code == 'MEMBER_NOT_FOUND') {
+            throw Exception('등록되지 않은 전화번호입니다.');
+          } else if (code == 'INVALID_PASSWORD') {
+            throw Exception('비밀번호가 틀렸습니다.');
+          } else if (code == 'REQUIRED_FIELD_MISSING') {
+            throw Exception(message ?? '필수 필드가 누락되었습니다.');
+          } else {
+            throw Exception(message ?? '로그인에 실패했습니다.');
+          }
+        }
       }
       return null;
-    } on DioException {
-      return null;
+    } on DioException catch (e) {
+      // 에러 정보 출력 (디버깅용)
+      print('=== 로그인 에러 ===');
+      print('Error Type: ${e.type}');
+      print('Error Message: ${e.message}');
+      print('Response Status: ${e.response?.statusCode}');
+      print('Response Data: ${e.response?.data}');
+      
+      // 에러 응답 처리
+      if (e.response != null) {
+        final statusCode = e.response!.statusCode;
+        final errorData = e.response!.data;
+        
+        if (statusCode == 404) {
+          // USER_NOT_FOUND - 등록되지 않은 계정
+          throw Exception('등록되지 않은 계정입니다.');
+        } else if (statusCode == 400) {
+          // INVALID_CREDENTIALS - 비밀번호 불일치
+          throw Exception('아이디 또는 비밀번호가 일치하지 않습니다.');
+        } else if (statusCode == 500) {
+          // SERVER_ERROR
+          throw Exception('서버 오류가 발생했습니다.');
+        } else {
+          // 기타 에러
+          final message = errorData?['message'] ?? '로그인에 실패했습니다.';
+          throw Exception(message);
+        }
+      } else {
+        // 네트워크 오류 등
+        throw Exception('네트워크 연결을 확인해주세요.');
+      }
     }
   }
   
@@ -104,7 +169,7 @@ class AuthService {
       
       return response.statusCode == 200;
     } on DioException catch (e) {
-      print('SMS 전송 실패: ${e.response?.data}');
+      // SMS 전송 실패 (로그 대신 에러만 반환)
       return false;
     }
   }
@@ -128,7 +193,7 @@ class AuthService {
       }
       return null;
     } on DioException catch (e) {
-      print('SMS 검증 실패: ${e.response?.data}');
+      // SMS 검증 실패 (로그 대신 에러만 반환)
       return null;
     }
   }
