@@ -3,14 +3,19 @@ import 'data/datasources/ble_remote_datasource.dart';
 import 'data/datasources/reservation_api_service.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/ble_repository_impl.dart';
+import 'data/repositories/booking_repository_impl.dart';
 import 'data/repositories/reservation_repository_impl.dart';
 import 'data/services/auth_service.dart';
+import 'data/services/booking_service.dart';
 import 'domain/repositories/auth_repository.dart';
 import 'domain/repositories/ble_repository.dart';
+import 'domain/repositories/booking_repository.dart';
 import 'domain/repositories/reservation_repository.dart';
 import 'domain/usecases/auto_login.dart';
 import 'domain/usecases/cancel_reservation_usecase.dart';
+import 'domain/usecases/create_appointment_usecase.dart';
 import 'domain/usecases/create_reservation_usecase.dart';
+import 'domain/usecases/get_available_time_slots.dart';
 import 'domain/usecases/get_reservations.dart';
 import 'domain/usecases/login.dart';
 import 'domain/usecases/logout.dart';
@@ -22,6 +27,7 @@ import 'domain/usecases/start_scan.dart';
 import 'domain/usecases/verify_sms_code.dart';
 import 'presentation/bloc/auth/auth_bloc.dart';
 import 'presentation/bloc/ble/ble_bloc.dart';
+import 'presentation/bloc/booking/booking_bloc.dart';
 import 'presentation/bloc/reservation/reservation_bloc.dart';
 
 final sl = GetIt.instance;
@@ -55,6 +61,13 @@ Future<void> init() async {
       cancelReservationUseCase: sl(),
     ),
   );
+  
+  sl.registerFactory(
+    () => BookingBloc(
+      getAvailableTimeSlots: sl(),
+      createAppointment: sl(),
+    ),
+  );
 
   // Use cases - BLE
   sl.registerLazySingleton(() => ScanBleDevices(sl()));
@@ -73,6 +86,10 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetReservations(sl()));
   sl.registerLazySingleton(() => CreateReservationUseCase(sl()));
   sl.registerLazySingleton(() => CancelReservationUseCase(sl()));
+  
+  // Use cases - Booking
+  sl.registerLazySingleton(() => GetAvailableTimeSlots(sl()));
+  sl.registerLazySingleton(() => CreateAppointment(sl()));
 
   // Repository
   sl.registerLazySingleton<BleRepository>(
@@ -88,6 +105,10 @@ Future<void> init() async {
   sl.registerLazySingleton<ReservationRepository>(
     () => ReservationRepositoryImpl(apiService: sl()),
   );
+  
+  sl.registerLazySingleton<BookingRepository>(
+    () => BookingRepositoryImpl(sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<BleRemoteDataSource>(
@@ -97,6 +118,7 @@ Future<void> init() async {
   // Services
   sl.registerLazySingleton(() => AuthService());
   sl.registerLazySingleton(() => ReservationApiService(authService: sl()));
+  sl.registerLazySingleton(() => BookingService());
   
   // Initialize auth service
   await sl<AuthService>().init();

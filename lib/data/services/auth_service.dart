@@ -171,7 +171,7 @@ class AuthService {
       );
       
       return response.statusCode == 200;
-    } on DioException catch (e) {
+    } on DioException {
       // SMS 전송 실패 (로그 대신 에러만 반환)
       return false;
     }
@@ -195,7 +195,7 @@ class AuthService {
         return temporaryToken;
       }
       return null;
-    } on DioException catch (e) {
+    } on DioException {
       // SMS 검증 실패 (로그 대신 에러만 반환)
       return null;
     }

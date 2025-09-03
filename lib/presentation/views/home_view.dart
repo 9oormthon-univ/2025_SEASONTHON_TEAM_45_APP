@@ -12,7 +12,7 @@ import '../bloc/ble/ble_bloc.dart';
 import '../bloc/ble/ble_event.dart';
 import '../bloc/ble/ble_state.dart';
 import '../../injection_container.dart';
-import 'booking_initial_view.dart';
+import 'appointment_initial_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -663,7 +663,7 @@ class _HomeViewState extends State<HomeView> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const BookingInitialView(),
+                builder: (context) => const AppointmentInitialView(),
               ),
             );
           },
