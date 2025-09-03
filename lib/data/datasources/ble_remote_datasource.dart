@@ -86,11 +86,11 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
           // print('[DEBUG] 최종 검증 결과: $isValidHospital');
           
           if (isValidHospital) {
-            // print('====================================');
-            // print('[BLE] 병원 비콘 감지!');
-            // print('Device: $deviceName');
-            // print('RSSI: ${result.rssi}');
-            // print('====================================');
+            print('====================================');
+            print('[BLE] 병원 비콘 감지!');
+            print('Device: $deviceName');
+            print('RSSI: ${result.rssi}');
+            print('====================================');
             
             final device = BleDeviceModel.fromScanResult(result);
             _foundDevices[device.id] = device;
