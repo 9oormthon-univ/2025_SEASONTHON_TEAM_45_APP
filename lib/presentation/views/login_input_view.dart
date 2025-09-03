@@ -5,7 +5,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../core/widgets/gradient_background.dart';
-import '../../injection_container.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
 import '../bloc/auth/auth_state.dart';
@@ -23,25 +22,17 @@ class _LoginInputViewState extends State<LoginInputView> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  late AuthBloc _authBloc;
 
-  @override
-  void initState() {
-    super.initState();
-    _authBloc = sl<AuthBloc>();
-  }
-  
   @override
   void dispose() {
     _phoneController.dispose();
     _passwordController.dispose();
-    _authBloc.close();
     super.dispose();
   }
 
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
-      _authBloc.add(LoginRequested(
+      context.read<AuthBloc>().add(LoginRequested(
         phoneNumber: _phoneController.text,
         password: _passwordController.text,
         autoLogin: true,  // 항상 자동 로그인 활성화
@@ -51,9 +42,7 @@ class _LoginInputViewState extends State<LoginInputView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => _authBloc,
-      child: BlocConsumer<AuthBloc, AuthState>(
+    return BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
             Navigator.pushReplacement(
@@ -331,8 +320,7 @@ class _LoginInputViewState extends State<LoginInputView> {
           ),
         ),
       );
-        },
-      ),
+      },
     );
   }
 }

@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../core/widgets/gradient_background.dart';
-import '../../injection_container.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
 import '../bloc/auth/auth_state.dart';
@@ -39,7 +38,6 @@ class _SignupViewState extends State<SignupView> {
   
   // Step 4 - Password
   final _passwordController = TextEditingController();
-  late AuthBloc _authBloc;
   bool _isPasswordValid = false;
   bool _hasMinLength = false;
   bool _hasLetter = false;
@@ -47,18 +45,11 @@ class _SignupViewState extends State<SignupView> {
   bool _hasSpecialChar = false;
 
   @override
-  void initState() {
-    super.initState();
-    _authBloc = sl<AuthBloc>();
-  }
-  
-  @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
     _verificationCodeController.dispose();
     _passwordController.dispose();
-    _authBloc.close();
     super.dispose();
   }
 
@@ -114,7 +105,7 @@ class _SignupViewState extends State<SignupView> {
     birthDate += '${_selectedMonth!.toString().padLeft(2, '0')}';
     birthDate += '${_selectedDay!.toString().padLeft(2, '0')}';
     
-    _authBloc.add(RegisterRequested(
+    context.read<AuthBloc>().add(RegisterRequested(
       name: _nameController.text,
       gender: _selectedGender!,
       birthDate: birthDate,
@@ -491,7 +482,7 @@ class _SignupViewState extends State<SignupView> {
               height: ResponsiveUtils.inputFieldHeight(context),
               child: ElevatedButton(
                 onPressed: (!_isCodeSent && _phoneController.text.length >= 10) ? () {
-                  _authBloc.add(SendSmsCodeRequested(phoneNumber: _phoneController.text));
+                  context.read<AuthBloc>().add(SendSmsCodeRequested(phoneNumber: _phoneController.text));
                 } : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryGreen,
@@ -571,7 +562,7 @@ class _SignupViewState extends State<SignupView> {
                 height: ResponsiveUtils.inputFieldHeight(context),
                 child: ElevatedButton(
                   onPressed: (!_isCodeVerified && _verificationCodeController.text.length == 6) ? () {
-                    _authBloc.add(VerifySmsCodeRequested(
+                    context.read<AuthBloc>().add(VerifySmsCodeRequested(
                       phoneNumber: _phoneController.text,
                       code: _verificationCodeController.text,
                     ));
@@ -856,9 +847,7 @@ class _SignupViewState extends State<SignupView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => _authBloc,
-      child: BlocConsumer<AuthBloc, AuthState>(
+    return BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
             // 회원가입 성공 - 로그인 화면으로 이동
@@ -961,8 +950,7 @@ class _SignupViewState extends State<SignupView> {
           ],
         ),
       );
-        },
-      ),
+      },
     );
   }
 }

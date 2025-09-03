@@ -111,9 +111,30 @@ class AuthService {
           print('=== 토큰 저장 완료 ===');
           print('Access Token: ${tokens.accessToken.substring(0, 20)}...');
           
-          // member_id 저장
+          // 사용자 정보 저장
           if (data['memberId'] != null) {
             await _prefs.setInt('member_id', data['memberId']);
+          }
+          if (data['memberName'] != null) {
+            await _prefs.setString('member_name', data['memberName']);
+          }
+          if (data['phoneNumber'] != null) {
+            await _prefs.setString('phone_number_info', data['phoneNumber']);
+          }
+          if (data['gender'] != null) {
+            await _prefs.setString('gender', data['gender']);
+          }
+          if (data['birthDate'] != null) {
+            await _prefs.setString('birth_date', data['birthDate']);
+          }
+          if (data['role'] != null) {
+            await _prefs.setString('role', data['role']);
+          }
+          if (data['email'] != null) {
+            await _prefs.setString('email', data['email']);
+          }
+          if (data['status'] != null) {
+            await _prefs.setString('status', data['status']);
           }
           
           // 로그인 응답 모델 반환
@@ -328,5 +349,26 @@ class AuthService {
     await _prefs.remove(_phoneNumberKey);
     await _prefs.remove(_passwordKey);
     await _prefs.remove('member_id');
+    await _prefs.remove('member_name');
+    await _prefs.remove('phone_number_info');
+    await _prefs.remove('gender');
+    await _prefs.remove('birth_date');
+    await _prefs.remove('role');
+    await _prefs.remove('email');
+    await _prefs.remove('status');
+  }
+  
+  // 사용자 정보 가져오기
+  Future<Map<String, dynamic>> getUserInfo() async {
+    return {
+      'memberId': _prefs.getInt('member_id'),
+      'memberName': _prefs.getString('member_name'),
+      'phoneNumber': _prefs.getString('phone_number_info'),
+      'gender': _prefs.getString('gender'),
+      'birthDate': _prefs.getString('birth_date'),
+      'role': _prefs.getString('role'),
+      'email': _prefs.getString('email'),
+      'status': _prefs.getString('status'),
+    };
   }
 }

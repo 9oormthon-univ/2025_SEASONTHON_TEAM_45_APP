@@ -36,9 +36,16 @@ class AuthRepositoryImpl implements AuthRepository {
         return Right(User(
           id: result.memberId?.toString() ?? phoneNumber,
           name: result.memberName ?? '',
-          phoneNumber: phoneNumber,
+          phoneNumber: result.phoneNumber ?? phoneNumber,
           accessToken: result.tokens.accessToken,
           refreshToken: result.tokens.refreshToken,
+          gender: result.gender,
+          birthDate: result.birthDate,
+          role: result.role,
+          email: result.email,
+          hospitalName: result.hospitalName,
+          hospitalAddress: result.hospitalAddress,
+          status: result.status,
         ));
       }
       print('=== 토큰이 null - 로그인 실패 ===');

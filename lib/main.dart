@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'injection_container.dart' as di;
 import 'core/constants/app_colors.dart';
 import 'presentation/bloc/ble/ble_bloc.dart';
+import 'presentation/bloc/auth/auth_bloc.dart';
 import 'presentation/views/login_initial_view.dart';
 import 'presentation/views/login_input_view.dart';
 import 'presentation/views/signup_view.dart';
@@ -29,31 +30,34 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'CareFreePass',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryGreen),
-        useMaterial3: true,
-        fontFamily: 'Pretendard',
-        primaryColor: AppColors.primaryGreen,
+    return BlocProvider(
+      create: (_) => di.sl<AuthBloc>(),
+      child: MaterialApp(
+        title: 'CareFreePass',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryGreen),
+          useMaterial3: true,
+          fontFamily: 'Pretendard',
+          primaryColor: AppColors.primaryGreen,
+        ),
+        home: const LoginInitialView(),
+        routes: {
+          '/login': (context) => const LoginInitialView(),
+          '/login_input': (context) => const LoginInputView(),
+          '/signup': (context) => const SignupView(),
+          '/permission_check': (context) => const PermissionSettingsView(),
+          '/home': (context) => BlocProvider(
+            create: (_) => di.sl<ReservationBloc>(),
+            child: const HomeView(),
+          ),
+          '/settings': (context) => const SettingsView(),
+          '/profile_management': (context) => const ProfileManagementView(),
+          '/ble_scan': (context) => BlocProvider(
+            create: (_) => di.sl<BleBloc>(),
+            child: const BleScanView(),
+          ),
+        },
       ),
-      home: const LoginInitialView(),
-      routes: {
-        '/login': (context) => const LoginInitialView(),
-        '/login_input': (context) => const LoginInputView(),
-        '/signup': (context) => const SignupView(),
-        '/permission_check': (context) => const PermissionSettingsView(),
-        '/home': (context) => BlocProvider(
-          create: (_) => di.sl<ReservationBloc>(),
-          child: const HomeView(),
-        ),
-        '/settings': (context) => const SettingsView(),
-        '/profile_management': (context) => const ProfileManagementView(),
-        '/ble_scan': (context) => BlocProvider(
-          create: (_) => di.sl<BleBloc>(),
-          child: const BleScanView(),
-        ),
-      },
     );
   }
 }
