@@ -222,68 +222,170 @@ class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
         ),
         SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
         
-        // 날짜 표시 카드
-        Container(
-          padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.md)),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-            border: Border.all(
-              color: AppColors.grayLight,
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // 인라인 캘린더
+        _buildInlineCalendar(context),
+      ],
+    );
+  }
+
+  // 인라인 캘린더 위젯
+  Widget _buildInlineCalendar(BuildContext context) {
+    // 현재 표시할 월의 첫날 계산
+    final firstDayOfMonth = DateTime(selectedDate.year, selectedDate.month, 1);
+    
+    // 캘린더에 표시할 첫 날 (이전 달의 일요일부터)
+    final firstDayToShow = firstDayOfMonth.subtract(
+      Duration(days: firstDayOfMonth.weekday % 7),
+    );
+    
+    // 6주 * 7일 = 42일 표시
+    final daysToShow = 35;
+    
+    return Container(
+      padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.md)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
+        border: Border.all(
+          color: AppColors.grayLight,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          // 월 네비게이션
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              IconButton(
+                icon: Icon(
+                  Icons.chevron_left,
+                  color: AppColors.textSecondary,
+                  size: 28,
+                ),
+                onPressed: () {
+                  setState(() {
+                    selectedDate = DateTime(
+                      selectedDate.year,
+                      selectedDate.month - 1,
+                      1,
+                    );
+                  });
+                },
+              ),
+              SizedBox(width: ResponsiveUtils.spacing(context, SpacingSize.lg)),
               Text(
-                DateFormat('yyyy년 MM월 dd일').format(selectedDate),
+                '${selectedDate.year}년 ${selectedDate.month}월',
                 style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                  fontWeight: FontWeight.w500,
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.lg),
+                  fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
               ),
-              TextButton.icon(
+              SizedBox(width: ResponsiveUtils.spacing(context, SpacingSize.lg)),
+              IconButton(
                 icon: Icon(
-                  Icons.calendar_today,
-                  size: 20,
-                  color: AppColors.primaryGreen,
+                  Icons.chevron_right,
+                  color: AppColors.textSecondary,
+                  size: 28,
                 ),
-                label: Text(
-                  '날짜 변경',
-                  style: TextStyle(
-                    fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                    color: AppColors.primaryGreen,
-                  ),
-                ),
-                onPressed: () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: selectedDate,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 30)),
-                  );
-                  if (date != null && mounted) {
-                    setState(() {
-                      selectedDate = date;
-                      selectedTime = null; // 날짜 변경시 시간 초기화
-                    });
-                    context.read<BookingBloc>().add(SelectDateEvent(date));
-                    context.read<BookingBloc>().add(
-                      LoadAvailableTimeSlotsEvent(
-                        hospitalId: 1, // 하드코딩된 병원 ID
-                        departmentName: selectedDepartment!,
-                        date: DateFormat('yyyy-MM-dd').format(date),
-                      ),
+                onPressed: () {
+                  setState(() {
+                    selectedDate = DateTime(
+                      selectedDate.year,
+                      selectedDate.month + 1,
+                      1,
                     );
-                  }
+                  });
                 },
               ),
             ],
           ),
-        ),
-      ],
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
+          
+          // 요일 헤더
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: ['일', '월', '화', '수', '목', '금', '토']
+                .map((day) => Expanded(
+                      child: Center(
+                        child: Text(
+                          day,
+                          style: TextStyle(
+                            fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ))
+                .toList(),
+          ),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+          
+          // 날짜 그리드
+          GridView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              childAspectRatio: 1,
+              crossAxisSpacing: 0,
+              mainAxisSpacing: ResponsiveUtils.spacing(context, SpacingSize.xs),
+            ),
+            itemCount: daysToShow,
+            itemBuilder: (context, index) {
+              final date = firstDayToShow.add(Duration(days: index));
+              final isCurrentMonth = date.month == selectedDate.month;
+              final isSelected = date.year == selectedDate.year &&
+                  date.month == selectedDate.month &&
+                  date.day == selectedDate.day;
+              final isToday = date.year == DateTime.now().year &&
+                  date.month == DateTime.now().month &&
+                  date.day == DateTime.now().day;
+              final isPast = date.isBefore(DateTime.now().subtract(Duration(days: 1)));
+              
+              return InkWell(
+                onTap: !isPast && isCurrentMonth ? () {
+                  setState(() {
+                    selectedDate = date;
+                    selectedTime = null; // 날짜 변경시 시간 초기화
+                  });
+                  context.read<BookingBloc>().add(SelectDateEvent(date));
+                  context.read<BookingBloc>().add(
+                    LoadAvailableTimeSlotsEvent(
+                      hospitalId: 1, // 하드코딩된 병원 ID
+                      departmentName: selectedDepartment!,
+                      date: DateFormat('yyyy-MM-dd').format(date),
+                    ),
+                  );
+                } : null,
+                borderRadius: BorderRadius.circular(100),
+                child: Container(
+                  margin: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.xs)),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primaryGreen : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${date.day}',
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                        fontWeight: isSelected ? FontWeight.w600 : 
+                                   (isToday ? FontWeight.w600 : FontWeight.w400),
+                        color: isSelected ? Colors.white :
+                               (!isCurrentMonth || isPast) ? AppColors.grayLight :
+                               AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
   // ================================================================
