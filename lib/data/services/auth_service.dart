@@ -111,6 +111,11 @@ class AuthService {
           print('=== 토큰 저장 완료 ===');
           print('Access Token: ${tokens.accessToken.substring(0, 20)}...');
           
+          // member_id 저장
+          if (data['memberId'] != null) {
+            await _prefs.setInt('member_id', data['memberId']);
+          }
+          
           // 로그인 응답 모델 반환
           return LoginResponseModel.fromJson(responseData);
         } else {
@@ -322,5 +327,6 @@ class AuthService {
     await _prefs.remove(_autoLoginKey);
     await _prefs.remove(_phoneNumberKey);
     await _prefs.remove(_passwordKey);
+    await _prefs.remove('member_id');
   }
 }
