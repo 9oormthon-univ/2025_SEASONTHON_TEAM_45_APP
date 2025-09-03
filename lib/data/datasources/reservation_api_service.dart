@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
 import '../network/api_endpoints.dart';
-import '../auth_storage.dart';
+import '../services/auth_service.dart';
 
 class ReservationApiService {
   late Dio _dio;
-  final AuthStorage _authStorage;
+  final AuthService _authService;
 
-  ReservationApiService({required AuthStorage authStorage}) : _authStorage = authStorage {
+  ReservationApiService({AuthService? authService}) : _authService = authService ?? AuthService() {
     _dio = Dio(BaseOptions(
       baseUrl: ApiEndpoints.baseUrl,
       connectTimeout: const Duration(seconds: 30),
@@ -18,7 +18,7 @@ class ReservationApiService {
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await _authStorage.getAccessToken();
+        final token = await _authService.getAccessToken();
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
@@ -27,17 +27,12 @@ class ReservationApiService {
       onError: (error, handler) async {
         if (error.response?.statusCode == 401) {
           // 토큰 갱신 로직
-          final refreshToken = await _authStorage.getRefreshToken();
+          final refreshToken = await _authService.getRefreshToken();
           if (refreshToken != null) {
             try {
-              final response = await Dio().post(
-                '${ApiEndpoints.baseUrl}${ApiEndpoints.refreshToken}',
-                data: {'refreshToken': refreshToken},
-              );
-              
-              if (response.statusCode == 200) {
-                final newAccessToken = response.data['data']['accessToken'];
-                await _authStorage.saveAccessToken(newAccessToken);
+              final newTokens = await _authService.refreshAccessToken(refreshToken);
+              if (newTokens != null) {
+                final newAccessToken = newTokens.accessToken;
                 
                 // 원래 요청 재시도
                 error.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
@@ -54,7 +49,7 @@ class ReservationApiService {
               }
             } catch (e) {
               // 토큰 갱신 실패
-              await _authStorage.clearTokens();
+              await _authService.logout();
             }
           }
         }

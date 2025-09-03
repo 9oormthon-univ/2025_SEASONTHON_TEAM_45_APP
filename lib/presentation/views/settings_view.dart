@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../core/widgets/gradient_background.dart';
-import '../../data/auth_storage.dart';
 import '../widgets/custom_back_button.dart';
 import 'permission_settings_view.dart';
 
@@ -11,8 +10,9 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authStorage = AuthStorage();
-    final currentUser = authStorage.getCurrentUser();
+    // TODO: 실제 로그인한 사용자 정보를 가져와야 함
+    // 현재는 임시로 null 처리
+    final Map<String, dynamic>? currentUser = null;
     
     return GradientScaffold(
       body: SafeArea(
@@ -217,7 +217,7 @@ class SettingsView extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                AuthStorage().logout();
+                // TODO: AuthBloc을 사용하여 로그아웃 처리
                 Navigator.of(context).pushNamedAndRemoveUntil(
                   '/login',
                   (route) => false,

@@ -1,5 +1,4 @@
 import 'package:get_it/get_it.dart';
-import 'data/auth_storage.dart';
 import 'data/datasources/ble_remote_datasource.dart';
 import 'data/datasources/reservation_api_service.dart';
 import 'data/repositories/auth_repository_impl.dart';
@@ -83,7 +82,6 @@ Future<void> init() async {
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
       authService: sl(),
-      authStorage: sl(),
     ),
   );
   
@@ -98,8 +96,7 @@ Future<void> init() async {
   
   // Services
   sl.registerLazySingleton(() => AuthService());
-  sl.registerLazySingleton(() => AuthStorage());
-  sl.registerLazySingleton(() => ReservationApiService(authStorage: sl()));
+  sl.registerLazySingleton(() => ReservationApiService(authService: sl()));
   
   // Initialize auth service
   await sl<AuthService>().init();

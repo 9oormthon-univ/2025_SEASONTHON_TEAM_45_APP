@@ -5,7 +5,6 @@ import 'dart:async';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../core/widgets/gradient_background.dart';
-import '../../data/auth_storage.dart';
 import '../bloc/reservation/reservation_bloc.dart';
 import '../bloc/reservation/reservation_state.dart';
 import '../bloc/reservation/reservation_event.dart';
@@ -45,10 +44,9 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void _loadUserInfo() {
-    final authStorage = AuthStorage();
-    final userInfo = authStorage.getCurrentUser();
+    // TODO: 실제 로그인한 사용자 정보를 가져와야 함
     setState(() {
-      _userName = userInfo?['name'] ?? '사용자';
+      _userName = '사용자';  // 임시로 기본값 사용
     });
   }
 

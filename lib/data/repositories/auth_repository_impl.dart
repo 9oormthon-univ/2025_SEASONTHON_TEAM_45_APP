@@ -4,17 +4,13 @@ import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../models/login_request_model.dart';
 import '../models/register_request_model.dart';
-import '../network/api_endpoints.dart';
 import '../services/auth_service.dart';
-import '../auth_storage.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthService authService;
-  final AuthStorage authStorage;
 
   AuthRepositoryImpl({
     required this.authService,
-    required this.authStorage,
   });
 
   @override
@@ -182,7 +178,6 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, void>> logout() async {
     try {
       await authService.logout();
-      authStorage.logout();
       return const Right(null);
     } catch (e) {
       return const Left(ServerFailure('로그아웃에 실패했습니다.'));

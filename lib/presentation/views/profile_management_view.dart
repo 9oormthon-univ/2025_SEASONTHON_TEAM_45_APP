@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../core/widgets/gradient_background.dart';
-import '../../data/auth_storage.dart';
 import '../widgets/custom_back_button.dart';
 
 class ProfileManagementView extends StatefulWidget {
@@ -31,17 +30,14 @@ class _ProfileManagementViewState extends State<ProfileManagementView> {
   }
   
   void _loadUserData() {
-    final authStorage = AuthStorage();
-    final currentUser = authStorage.getCurrentUser();
-    
-    if (currentUser != null) {
-      _nameController.text = currentUser['name'] ?? '';
-      _phoneController.text = currentUser['phone'] ?? '';
-      _selectedYear = currentUser['year'] ?? DateTime.now().year - 30;
-      _selectedMonth = currentUser['month'] ?? 1;
-      _selectedDay = currentUser['day'] ?? 1;
-      _selectedGender = currentUser['gender'] ?? '남성';
-    }
+    // TODO: 백엔드에서 실제 사용자 정보를 가져와야 함
+    // 현재는 임시로 기본값 사용
+    _nameController.text = '';
+    _phoneController.text = '';
+    _selectedYear = DateTime.now().year - 30;
+    _selectedMonth = 1;
+    _selectedDay = 1;
+    _selectedGender = '남성';
   }
   
   @override
@@ -466,9 +462,7 @@ class _ProfileManagementViewState extends State<ProfileManagementView> {
   
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
-      // 프로필 저장 로직
-      final authStorage = AuthStorage();
-      // 실제 저장 로직은 API 연동 시 구현
+      // TODO: 백엔드 API를 통해 프로필 저장
       
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
