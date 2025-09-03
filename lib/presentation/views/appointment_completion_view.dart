@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
-import 'home_view.dart';
 
 class AppointmentCompletionView extends StatelessWidget {
   final int appointmentId;
@@ -120,8 +119,8 @@ class AppointmentCompletionView extends StatelessWidget {
                   height: 56,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => const HomeView()),
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/home',
                         (route) => false,
                       );
                     },
