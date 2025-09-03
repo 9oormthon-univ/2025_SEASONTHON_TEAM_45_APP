@@ -43,7 +43,7 @@ class AppointmentInitialView extends StatelessWidget {
                 padding: ResponsiveUtils.defaultPadding(context),
                 child: Column(
                   children: [
-                    SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+                    SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xs)),
                     
                     // 안내 메시지
                     Container(
@@ -87,13 +87,13 @@ class AppointmentInitialView extends StatelessWidget {
                             style: TextStyle(
                               fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
                               fontWeight: FontWeight.w600,
-                              color: AppColors.primaryGreen,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xs)),
                           _buildStepItem(context, '1. 증상 설명 → 진료과 추천'),
                           _buildStepItem(context, '2. 예약 날짜와 시간 알려주기'),
-                          _buildStepItem(context, '3. 구릅파병원 예약 완료! ✅'),
+                          _buildStepItem(context, '3. 구름대병원 예약 완료! ✅'),
                         ],
                       ),
                     ),
@@ -103,24 +103,28 @@ class AppointmentInitialView extends StatelessWidget {
                     // 하단 버튼 영역
                     Column(
                       children: [
-                        // 어떻게 하는거야? 카드
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: ResponsiveUtils.spacing(context, SpacingSize.md),
-                            vertical: ResponsiveUtils.spacing(context, SpacingSize.sm),
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceLight,
-                            borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                        // 어떻게 하는거야? 버튼
+                        TextButton(
+                          onPressed: () {
+                            // AI 챗봇으로 적용
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: AppColors.surfaceLight,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: ResponsiveUtils.spacing(context, SpacingSize.lg),
+                              vertical: ResponsiveUtils.spacing(context, SpacingSize.sm),
+                            ),
                           ),
                           child: Text(
                             '어떻게 하는거야?',
                             style: TextStyle(
                               fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                              color: AppColors.textSecondary,
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w400,
                             ),
-                            textAlign: TextAlign.center,
                           ),
                         ),
                         
@@ -150,8 +154,8 @@ class AppointmentInitialView extends StatelessWidget {
                             '일반 예약으로 전환해줘',
                             style: TextStyle(
                               fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                              color: AppColors.primaryGreen,
-                              fontWeight: FontWeight.w500,
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
                         ),
