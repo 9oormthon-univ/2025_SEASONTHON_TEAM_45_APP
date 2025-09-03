@@ -112,22 +112,22 @@ class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
                         children: [
                           // ============ STEP 1: 진료과 선택 ============
                           _buildDepartmentSection(context),
-                          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+                          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.lg)),
 
                           // ============ STEP 2: 날짜 선택 ============
                           if (selectedDepartment != null)
                             _buildDateSection(context),
                           if (selectedDepartment != null)
-                            SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
+                            SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.lg)),
 
                           // ============ STEP 3: 시간 선택 ============
-                          if (selectedDepartment != null && selectedDate != null)
+                          if (selectedDepartment != null)
                             _buildTimeSection(context, state),
-                          if (selectedDepartment != null && selectedDate != null)
+                          if (selectedDepartment != null)
                             SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xl)),
 
                           // ============ 예약 확인 버튼 ============
-                          if (selectedDepartment != null && selectedDate != null && selectedTime != null)
+                          if (selectedDepartment != null && selectedTime != null)
                             _buildConfirmButton(context, state),
                         ],
                       ),
@@ -414,37 +414,14 @@ class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
             ),
           )
         else if (state is TimeSlotsLoaded)
-          _buildTimeGrid(context, state)
+          _buildTimeSlots(context, state)
         else
-          // 시간대 조회 버튼
           Center(
-            child: ElevatedButton(
-              onPressed: () {
-                context.read<BookingBloc>().add(
-                  LoadAvailableTimeSlotsEvent(
-                    hospitalId: 1, // 하드코딩된 병원 ID
-                    departmentName: selectedDepartment!,
-                    date: DateFormat('yyyy-MM-dd').format(selectedDate),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryGreen,
-                padding: EdgeInsets.symmetric(
-                  horizontal: ResponsiveUtils.spacing(context, SpacingSize.xl),
-                  vertical: ResponsiveUtils.spacing(context, SpacingSize.md),
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-                ),
-              ),
-              child: Text(
-                '시간대 조회',
-                style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+            child: Text(
+              '날짜를 선택하면 예약 가능한 시간이 표시됩니다',
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                color: AppColors.textSecondary,
               ),
             ),
           ),
@@ -452,8 +429,8 @@ class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
     );
   }
 
-  // 시간 그리드 표시
-  Widget _buildTimeGrid(BuildContext context, TimeSlotsLoaded state) {
+  // 시간대별 그룹화된 시간 표시
+  Widget _buildTimeSlots(BuildContext context, TimeSlotsLoaded state) {
     if (state.timeSlotResponse.timeSlots.isEmpty) {
       return Center(
         child: Text(
@@ -466,18 +443,66 @@ class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
       );
     }
 
+    // 오전/오후 시간 분리
+    final morningSlots = state.timeSlotResponse.timeSlots.where((slot) {
+      final hour = int.parse(slot.time.substring(0, 2));
+      return hour < 12;
+    }).toList();
+    
+    final afternoonSlots = state.timeSlotResponse.timeSlots.where((slot) {
+      final hour = int.parse(slot.time.substring(0, 2));
+      return hour >= 12;
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 오전 시간대
+        if (morningSlots.isNotEmpty) ...[
+          Text(
+            '오전',
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+          _buildTimeGrid(context, morningSlots),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.lg)),
+        ],
+        
+        // 오후 시간대
+        if (afternoonSlots.isNotEmpty) ...[
+          Text(
+            '오후',
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+          _buildTimeGrid(context, afternoonSlots),
+        ],
+      ],
+    );
+  }
+
+  // 시간 그리드 표시 (4개씩 가로 배치)
+  Widget _buildTimeGrid(BuildContext context, List<dynamic> slots) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 2.5,
-        crossAxisSpacing: ResponsiveUtils.spacing(context, SpacingSize.sm),
-        mainAxisSpacing: ResponsiveUtils.spacing(context, SpacingSize.sm),
+        crossAxisCount: 4, // 4개씩 가로 배치
+        childAspectRatio: 2.2, // 버튼 비율 조정
+        crossAxisSpacing: ResponsiveUtils.spacing(context, SpacingSize.xs),
+        mainAxisSpacing: ResponsiveUtils.spacing(context, SpacingSize.xs),
       ),
-      itemCount: state.timeSlotResponse.timeSlots.length,
+      itemCount: slots.length,
       itemBuilder: (context, index) {
-        final slot = state.timeSlotResponse.timeSlots[index];
+        final slot = slots[index];
         final isSelected = selectedTime == slot.time;
         final isAvailable = slot.available;
 
@@ -488,29 +513,29 @@ class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
             });
             context.read<BookingBloc>().add(SelectTimeSlotEvent(slot.time));
           } : null,
-          borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+          borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
           child: Container(
             decoration: BoxDecoration(
               color: isSelected 
                 ? AppColors.primaryGreen
-                : (isAvailable ? Colors.white : Colors.grey.shade100),
-              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                : (isAvailable ? Colors.white : AppColors.surfaceLight),
+              borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
               border: Border.all(
                 color: isSelected
                   ? AppColors.primaryGreen
-                  : (isAvailable ? AppColors.grayLight : Colors.transparent),
-                width: 1,
+                  : (isAvailable ? AppColors.grayLight : AppColors.grayLight.withValues(alpha: 0.5)),
+                width: isSelected ? 2 : 1,
               ),
             ),
             child: Center(
               child: Text(
                 slot.time.substring(0, 5), // HH:mm 형식으로 표시
                 style: TextStyle(
-                  fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: isSelected 
                     ? Colors.white
-                    : (isAvailable ? AppColors.textPrimary : AppColors.textSecondary),
+                    : (isAvailable ? AppColors.textSecondary : AppColors.grayLight),
                 ),
               ),
             ),
@@ -524,7 +549,6 @@ class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
   // ======================== 예약 확인 버튼 ========================
   Widget _buildConfirmButton(BuildContext context, BookingState state) {
     final isEnabled = selectedDepartment != null && 
-                      selectedDate != null && 
                       selectedTime != null &&
                       memberId != null;
 
