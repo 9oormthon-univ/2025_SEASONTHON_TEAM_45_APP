@@ -93,7 +93,7 @@ class ReservationRepositoryImpl implements ReservationRepository {
           date: date,
           time: time,
           department: '내과', // API에서 반환하도록 수정 필요
-          hospitalName: '구름병원', // API에서 반환하도록 수정 필요
+          hospitalName: '구름대병원', // API에서 반환하도록 수정 필요
           doctorName: '김의사', // API에서 반환하도록 수정 필요
           message: response.data['data']['message'],
           createdAt: DateTime.now(),

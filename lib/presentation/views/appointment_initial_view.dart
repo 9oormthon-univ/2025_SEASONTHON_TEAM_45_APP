@@ -83,7 +83,7 @@ class AppointmentInitialView extends StatelessWidget {
                           
                           // 예약 과정
                           Text(
-                            '💡 예약 과정:',
+                            '📝 예약 과정:',
                             style: TextStyle(
                               fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
                               fontWeight: FontWeight.w600,

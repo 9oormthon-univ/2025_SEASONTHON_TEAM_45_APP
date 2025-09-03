@@ -64,7 +64,7 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
       date: event.date ?? '2025년 8월 31일',
       time: event.time ?? '오전 10:30',
       department: '내과',
-      hospitalName: '구름병원',
+      hospitalName: '구름대병원',
       doctorName: '김의사',
       message: '예약이 완료되었습니다',
       createdAt: DateTime.now(),

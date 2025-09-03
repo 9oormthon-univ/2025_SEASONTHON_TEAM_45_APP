@@ -57,7 +57,10 @@ class _HomeViewState extends State<HomeView> {
       child: GradientScaffold(
             body: Column(
               children: [
+                // 상단 헤더 (병원 로고 + 설정 버튼)
                 _buildHeader(context),
+                
+                // 예약 카드 영역
                 Expanded(
                   child: BlocBuilder<ReservationBloc, ReservationState>(
                         builder: (context, state) {
@@ -79,6 +82,8 @@ class _HomeViewState extends State<HomeView> {
                         },
                   ),
                 ),
+                
+                // 하단 예약하기 버튼
                 _buildBottomButton(context),
               ],
             ),
@@ -98,6 +103,7 @@ class _HomeViewState extends State<HomeView> {
     return [...todayReservations, ...futureReservations];
   }
 
+  // 헤더 위젯: 병원 로고와 설정 버튼
   Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
@@ -116,7 +122,7 @@ class _HomeViewState extends State<HomeView> {
                 width: 40,
                 height: 40,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: ResponsiveUtils.widthPercent(context, 2)),
               Text(
                 '구름대병원',
                 style: TextStyle(
@@ -141,6 +147,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // 예약이 없을 때 표시되는 화면
   Widget _buildEmptyState(BuildContext context) {
     return Padding(
       padding: ResponsiveUtils.horizontalPaddingOnly(context),
@@ -153,6 +160,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // 예약 없음 이미지 표시
   Widget _buildEmptyContent(BuildContext context) {
     return Center(
       child: SvgPicture.asset(
@@ -164,6 +172,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // 여러 예약 카드를 스와이프 가능한 페이지로 표시
   Widget _buildReservationPages(BuildContext context, List<dynamic> reservations) {
     return Column(
       children: [
@@ -187,6 +196,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // 개별 예약 카드 빌드
   Widget _buildReservationCard(BuildContext context, dynamic reservation) {
     return Padding(
       padding: ResponsiveUtils.horizontalPaddingOnly(context),
@@ -200,6 +210,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   // 통합된 카드 위젯
+  // 카드 배경 SVG와 내용을 담는 컨테이너
   Widget _buildCard(BuildContext context, Widget content) {
     return SizedBox(
       height: ResponsiveUtils.heightPercent(context, 55), // 카드 고정 높이 55%
@@ -231,6 +242,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // 예약 상세 정보 표시
   Widget _buildReservationContent(BuildContext context, dynamic reservation) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +278,7 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
         SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.lg)),
-        // 호출됨 상태
+        // 호출됨 상태일 때 진료실 정보 표시
         if (reservation.status == 'CALLED' && reservation.roomName != null) ...[
           Center(
             child: Column(
@@ -280,7 +292,7 @@ class _HomeViewState extends State<HomeView> {
                     BlendMode.srcIn,
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: ResponsiveUtils.heightPercent(context, 3)),
                 Text(
                   '${reservation.roomName}',
                   style: TextStyle(
@@ -297,11 +309,11 @@ class _HomeViewState extends State<HomeView> {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: ResponsiveUtils.heightPercent(context, 3)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildInfoColumn('예약 시간', _formatTime(reservation.time)),
+                    _buildInfoColumn('예약 시간', _formatTime(reservation.appointmentTime)),
                     _buildInfoColumn('진료과', reservation.department ?? '내과'),
                   ],
                 ),
@@ -309,13 +321,14 @@ class _HomeViewState extends State<HomeView> {
             ),
           ),
         ] else ...[
-          // 예약 완료/대기 중 상태
+          // 일반 예약 상태 (예약 완료/대기 중)
           _buildReservationInfo(context, reservation),
         ],
       ],
     );
   }
   
+  // 라벨과 값을 세로로 표시하는 컴포넌트 (호출됨 상태에서 사용)
   Widget _buildInfoColumn(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,7 +340,7 @@ class _HomeViewState extends State<HomeView> {
             color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: ResponsiveUtils.heightPercent(context, 0.5)),
         Text(
           value,
           style: TextStyle(
@@ -340,6 +353,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // 예약 상태 아이콘과 텍스트 표시
   Widget _buildStatusIndicator(BuildContext context, dynamic reservation) {
     String svgPath;
     String text;
@@ -372,7 +386,7 @@ class _HomeViewState extends State<HomeView> {
           width: 24,
           height: 24,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: ResponsiveUtils.widthPercent(context, 2)),
         Text(
           text,
           style: TextStyle(
@@ -385,11 +399,12 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // 예약 정보 (날짜, 시간, 진료과) 상세 표시
   Widget _buildReservationInfo(BuildContext context, dynamic reservation) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 방문 예정 날짜
+        // 방문 예정 날짜 섹션
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -439,7 +454,7 @@ class _HomeViewState extends State<HomeView> {
           ],
         ),
         SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.lg)), // 24px 상당
-        // 방문 예정 시간
+        // 방문 예정 시간 섹션
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -463,7 +478,7 @@ class _HomeViewState extends State<HomeView> {
           ],
         ),
         SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.lg)), // 24px 상당
-        // 진료과
+        // 진료과 섹션
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -490,14 +505,14 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // 날짜 포맷팅: 2024-12-31 -> 2024년 12월 31일
   String _formatDate(String date) {
-    // 2024-12-31 -> 2024년 12월 31일
     final parts = date.split('-');
     return '${parts[0]}년 ${int.parse(parts[1])}월 ${int.parse(parts[2])}일';
   }
 
+  // 시간 포맷팅: 14:30 -> 오후 2:30
   String _formatTime(String time) {
-    // 14:30 -> 오후 2:30
     final parts = time.split(':');
     final hour = int.parse(parts[0]);
     final minute = parts[1];
@@ -509,8 +524,8 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  // D-Day 계산 (예약일까지 남은 일수)
   int _getDaysDifference(String date) {
-    // 예약 날짜까지 남은 일수 계산
     try {
       final parts = date.split('-');
       final appointmentDate = DateTime(
@@ -527,17 +542,22 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  // 페이지 인디케이터 (점으로 현재 페이지 표시)
   Widget _buildPageIndicator(int pageCount) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8), // 페이지 인디케이터는 고정값 사용
+      padding: EdgeInsets.symmetric(
+        vertical: ResponsiveUtils.heightPercent(context, 1), // 상하 패딩
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(
           pageCount,
           (index) => Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: 8,
-            height: 8,
+            margin: EdgeInsets.symmetric(
+              horizontal: ResponsiveUtils.widthPercent(context, 1),
+            ),
+            width: ResponsiveUtils.widthPercent(context, 2),
+            height: ResponsiveUtils.widthPercent(context, 2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: index == _currentPage
@@ -550,6 +570,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // 하단 예약하기 버튼
   Widget _buildBottomButton(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.lg)),
@@ -577,7 +598,7 @@ class _HomeViewState extends State<HomeView> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.add, color: Colors.white, size: 20),
-              const SizedBox(width: 4),
+              SizedBox(width: ResponsiveUtils.widthPercent(context, 1)),
               Text(
                 '예약하기',
                 style: TextStyle(
@@ -592,6 +613,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // 상태별 안내 메시지 반환
   String _getStatusMessage(String status) {
     switch (status) {
       case 'SCHEDULED':
