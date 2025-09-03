@@ -880,23 +880,11 @@ class _SignupViewState extends State<SignupView> {
             setState(() {
               _isCodeSent = true;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('인증번호가 전송되었습니다.'),
-                backgroundColor: AppColors.primaryGreen,
-              ),
-            );
           } else if (state is SmsCodeVerified) {
             setState(() {
               _isCodeVerified = true;
               _temporaryToken = state.temporaryToken;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('인증이 완료되었습니다.'),
-                backgroundColor: AppColors.success,
-              ),
-            );
           } else if (state is SmsCodeError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
