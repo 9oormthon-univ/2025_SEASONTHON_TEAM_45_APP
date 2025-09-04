@@ -9,11 +9,15 @@ abstract class ReservationEvent extends Equatable {
 
 class LoadReservations extends ReservationEvent {
   final int memberId;
+  final bool isPollingUpdate;
 
-  const LoadReservations({required this.memberId});
+  const LoadReservations({
+    required this.memberId,
+    this.isPollingUpdate = false,
+  });
 
   @override
-  List<Object?> get props => [memberId];
+  List<Object?> get props => [memberId, isPollingUpdate];
 }
 
 class CreateReservation extends ReservationEvent {
@@ -131,4 +135,12 @@ class UpdateAppointmentFromNotification extends ReservationEvent {
 
   @override
   List<Object?> get props => [appointmentId, status, roomName];
+}
+
+class StartPolling extends ReservationEvent {
+  const StartPolling();
+}
+
+class StopPolling extends ReservationEvent {
+  const StopPolling();
 }

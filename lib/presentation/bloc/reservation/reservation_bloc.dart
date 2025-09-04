@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/error/failures.dart';
 import '../../../core/error/exceptions.dart';
@@ -15,6 +16,8 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
   final CreateReservationUseCase createReservationUseCase;
   final CancelReservationUseCase cancelReservationUseCase;
   final AppointmentService appointmentService = AppointmentService();
+  Timer? _pollingTimer;
+  int? _currentMemberId;
 
   ReservationBloc({
     required this.getReservations,
@@ -29,21 +32,48 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
     on<CheckInAppointment>(_onCheckInAppointment);
     on<UpdateAppointmentStatus>(_onUpdateAppointmentStatus);
     on<UpdateAppointmentFromNotification>(_onUpdateAppointmentFromNotification);
+    on<StartPolling>(_onStartPolling);
+    on<StopPolling>(_onStopPolling);
+  }
+  
+  @override
+  Future<void> close() {
+    _pollingTimer?.cancel();
+    return super.close();
   }
 
   Future<void> _onLoadReservations(
     LoadReservations event,
     Emitter<ReservationState> emit,
   ) async {
-    emit(ReservationLoading());
+    if (!event.isPollingUpdate) {
+      emit(ReservationLoading());
+    }
     
     try {
       // 전체 예약 목록 조회
       final appointments = await appointmentService.getAllAppointments(event.memberId);
       
+      if (event.isPollingUpdate) {
+        print('[폴링] 예약 상태 자동 확인 중...');
+        // 호출됨 상태 체크
+        for (var appointment in appointments) {
+          if (appointment.status == 'CALLED') {
+            print('[폴링] 호출됨 상태 감지! Room: ${appointment.roomName}');
+          }
+        }
+      }
+      
       // AppointmentModel을 사용하도록 수정
       // State에서도 AppointmentModel을 직접 사용하도록 변경
       emit(ReservationLoaded(reservations: appointments));
+      
+      // 폴링 자동 시작 (Push Notification 대체)
+      if (!event.isPollingUpdate) {
+        _currentMemberId = event.memberId;
+        add(StartPolling());
+        print('[폴링] 5초 간격 자동 상태 확인 시작 (Push Notification 대체)');
+      }
       
     } on ServerException catch (e) {
       emit(ReservationError(message: e.message));
@@ -169,6 +199,31 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
       canCall: appointment.canCall,
       roomName: roomName ?? appointment.roomName,
     );
+  }
+
+  Future<void> _onStartPolling(
+    StartPolling event,
+    Emitter<ReservationState> emit,
+  ) async {
+    _pollingTimer?.cancel();
+    
+    // 5초마다 상태 확인 (Push Notification 대체)
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (_currentMemberId != null) {
+        add(LoadReservations(
+          memberId: _currentMemberId!,
+          isPollingUpdate: true,
+        ));
+      }
+    });
+  }
+
+  Future<void> _onStopPolling(
+    StopPolling event,
+    Emitter<ReservationState> emit,
+  ) async {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
   }
 
   String _mapFailureToMessage(Failure failure) {
