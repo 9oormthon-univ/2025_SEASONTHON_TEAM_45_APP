@@ -99,12 +99,26 @@ class _ChatViewState extends State<ChatView> {
                   return ListView.builder(
                     controller: _scrollController,
                     reverse: true,
-                    padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.md)),
-                    itemCount: provider.messages.length + (provider.isTyping ? 1 : 0),
+                    padding: ResponsiveUtils.defaultPadding(context),
+                    itemCount: provider.messages.length + (provider.isTyping ? 1 : 0) + 1, // +1 챗봇 안내 메세지
                     itemBuilder: (context, index) {
+                      // Typing indicator at bottom
                       if (provider.isTyping && index == 0) {
                         return _buildTypingIndicator();
                       }
+                      
+                      // 챗봇 안내 메세지
+                      final totalMessages = provider.messages.length + (provider.isTyping ? 1 : 0);
+                      if (index == totalMessages) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: ResponsiveUtils.spacing(context, SpacingSize.md),
+                          ),
+                          child: _buildWelcomeCard(),
+                        );
+                      }
+                      
+                      // Regular messages
                       final messageIndex = provider.isTyping ? index - 1 : index;
                       final message = provider.messages[messageIndex];
                       return _buildMessageBubble(message, provider);
@@ -428,6 +442,93 @@ class _ChatViewState extends State<ChatView> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeCard() {
+    return Container(
+      padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.lg)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '안녕하세요! AI 병원 예약 도우미입니다. 😊',
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.sm)),
+          Text(
+            '어떤 증상으로 문의해주셨나요? 자세히 말씀해 주시면 적절한 진료과를 추천해 드리겠습니다.',
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.md)),
+          
+          // 예약 과정
+          Text(
+            '📝 예약 과정:',
+            style: TextStyle(
+              fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.xs)),
+          _buildStepItem('1. 증상 설명 → 진료과 추천'),
+          _buildStepItem('2. 예약 날짜와 시간 알려주기'),
+          _buildStepItem('3. 구름대병원 예약 완료! ✅'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepItem(String text) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.spacing(context, SpacingSize.xs)),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            margin: EdgeInsets.only(
+              top: ResponsiveUtils.spacing(context, SpacingSize.xs),
+              right: ResponsiveUtils.spacing(context, SpacingSize.sm),
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.primaryGreen,
+              shape: BoxShape.circle,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
