@@ -374,37 +374,34 @@ class _ChatViewState extends State<ChatView> {
   }
 
   Widget _buildInputArea() {
-    return Container(
+    return Padding(
       padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.md)),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
+          border: Border.all(
+            color: AppColors.grayLight,
+            width: 1,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.backgroundGray,
-                borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.large),
-                border: Border.all(
-                  color: AppColors.grayLight,
-                  width: 1,
-                ),
-              ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
               child: TextField(
                 controller: _messageController,
                 focusNode: _focusNode,
                 decoration: InputDecoration(
                   hintText: '증상을 자세히 알려주세요...',
                   hintStyle: TextStyle(
-                    fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
+                    fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
                     color: AppColors.textHint,
                   ),
                   border: InputBorder.none,
@@ -418,23 +415,19 @@ class _ChatViewState extends State<ChatView> {
                 onSubmitted: (_) => _sendMessage(),
               ),
             ),
-          ),
-          SizedBox(width: ResponsiveUtils.spacing(context, SpacingSize.sm)),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.primaryGreen,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.send_rounded,
-                color: Colors.white,
-                size: ResponsiveUtils.iconSize(context, IconSizeType.medium),
+            Container(
+              margin: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.xs)),
+              decoration: BoxDecoration(
+                color: AppColors.primaryGreen,
+                shape: BoxShape.circle,
               ),
-              onPressed: _sendMessage,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_upward, color: Colors.white),
+                onPressed: _sendMessage,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
