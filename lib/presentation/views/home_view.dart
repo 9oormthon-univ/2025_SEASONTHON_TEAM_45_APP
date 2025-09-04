@@ -312,7 +312,7 @@ class _HomeViewState extends State<HomeView> {
                 ),
                 SizedBox(height: ResponsiveUtils.heightPercent(context, 3)),
                 Text(
-                  '${reservation.roomName ?? "진료실"}',
+                  reservation.department,
                   style: TextStyle(
                     fontSize: ResponsiveUtils.fontSize(context, FontSize.xl),
                     fontWeight: FontWeight.w700,

@@ -59,7 +59,7 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
         // 호출됨 상태 체크
         for (var appointment in appointments) {
           if (appointment.status == 'CALLED') {
-            print('[폴링] 호출됨 상태 감지! Room: ${appointment.roomName}');
+            print('[폴링] 호출됨 상태 감지! ${appointment.department} ${appointment.roomName ?? "진료실"}');
           }
         }
       }
