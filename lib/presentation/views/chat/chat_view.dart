@@ -143,24 +143,7 @@ class _ChatViewState extends State<ChatView> {
               ),
             ),
           ),
-          // 일반 예약으로 전환 버튼
-          TextButton(
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const GeneralAppointmentView(),
-                ),
-              );
-            },
-            child: Text(
-              '일반 예약',
-              style: TextStyle(
-                fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
-                color: AppColors.primaryGreen,
-              ),
-            ),
-          ),
+          SizedBox(width: ResponsiveUtils.spacing(context, SpacingSize.lg)),
         ],
       ),
     );
