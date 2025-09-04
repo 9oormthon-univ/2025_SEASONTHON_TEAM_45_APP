@@ -55,7 +55,7 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
       final appointments = await appointmentService.getAllAppointments(event.memberId);
       
       if (event.isPollingUpdate) {
-        print('[폴링] 예약 상태 자동 확인 중...');
+        //print('[폴링] 예약 상태 자동 확인 중...');
         // 호출됨 상태 체크
         for (var appointment in appointments) {
           if (appointment.status == 'CALLED') {

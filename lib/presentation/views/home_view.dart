@@ -710,8 +710,8 @@ class _HomeViewState extends State<HomeView> {
     final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
     // print('[HomeView] 오늘 날짜: $todayStr');
     
-    print('====================================');
-    print('[BLE 스캔] SCHEDULED 상태 예약 확인 중...');
+    // print('====================================');
+    // print('[BLE 스캔] SCHEDULED 상태 예약 확인 중...');
     
     // 오늘 예약 중 SCHEDULED 상태인 예약 찾기
     for (var reservation in reservations) {
