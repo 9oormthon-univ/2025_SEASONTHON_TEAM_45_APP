@@ -743,8 +743,8 @@ class _HomeViewState extends State<HomeView> {
     }
     
     if (_todayAppointment == null) {
-      print('SCHEDULED 상태 예약 없음');
-      print('====================================');
+      // print('SCHEDULED 상태 예약 없음');
+      // print('====================================');
     }
   }
   
