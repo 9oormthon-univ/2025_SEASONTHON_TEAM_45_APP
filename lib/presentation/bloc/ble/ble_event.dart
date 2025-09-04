@@ -11,7 +11,18 @@ class StartBleScan extends BleEvent {}
 
 class StopBleScan extends BleEvent {}
 
-class StartScanning extends BleEvent {}
+class StartScanning extends BleEvent {
+  final int? appointmentId;
+  final int? memberId;
+  
+  const StartScanning({this.appointmentId, this.memberId});
+  
+  @override
+  List<Object> get props => [
+    if (appointmentId != null) appointmentId!,
+    if (memberId != null) memberId!,
+  ];
+}
 
 class StopScanning extends BleEvent {}
 

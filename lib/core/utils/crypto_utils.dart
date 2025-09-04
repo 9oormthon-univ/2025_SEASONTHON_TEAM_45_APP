@@ -31,11 +31,12 @@ class CryptoUtils {
   
   static void printHashForNRFConnect() {
     final prefix = getExpectedHashPrefix();
-    // print('====================================');
-    // print('[nRF Connect 설정]');
-    // print('Complete Local Name에 입력할 값:');
-    // print(prefix);
-    // print('(SHA-256 해시 상위 6바이트)');
-    // print('====================================');
+    print('====================================');
+    print('[nRF Connect 설정]');
+    print('Service Data에 입력할 값 (HEX):');
+    print('354544344134343539434131');
+    print('또는 Device Name:');
+    print(prefix);  // 5ED4A4459CA1
+    print('====================================');
   }
 }

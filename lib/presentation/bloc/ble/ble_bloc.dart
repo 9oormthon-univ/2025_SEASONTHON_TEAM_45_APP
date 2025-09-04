@@ -33,24 +33,35 @@ class BleBloc extends Bloc<BleEvent, BleState> {
     CheckPermissions event,
     Emitter<BleState> emit,
   ) async {
+    // print('[BleBloc] _onCheckPermissions 호출');
     final bluetoothStatus = await repository.checkBluetoothStatus();
     bluetoothStatus.fold(
-      (failure) => emit(BleBluetoothOff()),
+      (failure) {
+        // print('[BleBloc] 블루투스 OFF');
+        emit(BleBluetoothOff());
+      },
       (isOn) async {
         if (isOn) {
+          // print('[BleBloc] 블루투스 ON - 권한 요청');
           final permissions = await repository.requestPermissions();
           permissions.fold(
-            (failure) => emit(BlePermissionDenied()),
+            (failure) {
+              // print('[BleBloc] 권한 거부됨');
+              emit(BlePermissionDenied());
+            },
             (granted) {
               if (granted) {
-                // 권한이 허용되면 자동으로 스캔 시작
-                add(StartBleScan());
+                // print('[BleBloc] 권한 허용됨');
+                // 권한 허용 상태만 알리고 스캔은 StartScanning 이벤트를 기다림
+                // StartBleScan을 호출하지 않음
               } else {
+                // print('[BleBloc] 권한 거부됨');
                 emit(BlePermissionDenied());
               }
             },
           );
         } else {
+          // print('[BleBloc] 블루투스 OFF');
           emit(BleBluetoothOff());
         }
       },
@@ -61,6 +72,7 @@ class BleBloc extends Bloc<BleEvent, BleState> {
     StartBleScan event,
     Emitter<BleState> emit,
   ) async {
+    // print('[BleBloc] _onStartBleScan 호출');
     emit(BleScanning(
       devices: _currentDevices,
       lastUpdate: DateTime.now(),
@@ -68,14 +80,21 @@ class BleBloc extends Bloc<BleEvent, BleState> {
 
     final result = await startScanUseCase(NoParams());
     result.fold(
-      (failure) => emit(BleError(failure.message)),
+      (failure) {
+        // print('[BleBloc] 스캔 시작 실패: ${failure.message}');
+        emit(BleError(failure.message));
+      },
       (_) {
+        // print('[BleBloc] 스캔 시작 성공 - 스트림 구독');
         _scanSubscription?.cancel();
         _scanSubscription = scanBleDevices(NoParams()).listen(
           (either) {
             either.fold(
               (failure) => add(DevicesUpdated([])),
-              (devices) => add(DevicesUpdated(devices)),
+              (devices) {
+                // print('[BleBloc] 디바이스 업데이트: ${devices.length}개');
+                add(DevicesUpdated(devices));
+              },
             );
           },
         );
@@ -124,16 +143,56 @@ class BleBloc extends Bloc<BleEvent, BleState> {
     StartScanning event,
     Emitter<BleState> emit,
   ) async {
-    // StartBleScan과 동일한 동작
-    add(StartBleScan());
+    // print('[BleBloc] _onStartScanning 호출 - appointmentId: ${event.appointmentId}, memberId: ${event.memberId}');
+    
+    // BLE 스캔 상태로 변경
+    emit(BleScanning(
+      devices: _currentDevices,
+      lastUpdate: DateTime.now(),
+    ));
+    
+    // appointmentId와 memberId를 전달하여 스캔 시작
+    final result = await repository.startScan(
+      appointmentId: event.appointmentId,
+      memberId: event.memberId,
+    );
+    
+    result.fold(
+      (failure) {
+        // print('[BleBloc] 스캔 시작 실패: ${failure.message}');
+        emit(BleError(failure.message));
+      },
+      (_) {
+        // print('[BleBloc] 스캔 시작 성공 - 스트림 구독');
+        _scanSubscription?.cancel();
+        _scanSubscription = scanBleDevices(NoParams()).listen(
+          (either) {
+            either.fold(
+              (failure) => add(DevicesUpdated([])),
+              (devices) {
+                // print('[BleBloc] 디바이스 업데이트: ${devices.length}개');
+                add(DevicesUpdated(devices));
+              },
+            );
+          },
+        );
+      },
+    );
   }
   
   Future<void> _onStopScanning(
     StopScanning event,
     Emitter<BleState> emit,
   ) async {
-    // StopBleScan과 동일한 동작
-    add(StopBleScan());
+    // BleBloc이 닫히지 않았을 때만 이벤트 추가
+    if (!isClosed) {
+      // StopBleScan과 동일한 동작
+      add(StopBleScan());
+    } else {
+      // 이미 닫힌 경우 직접 처리
+      await repository.stopScan();
+      _scanSubscription?.cancel();
+    }
   }
 
   @override

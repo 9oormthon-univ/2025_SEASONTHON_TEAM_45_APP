@@ -14,10 +14,14 @@ import 'presentation/views/settings_view.dart';
 import 'presentation/views/profile_management_view.dart';
 import 'presentation/bloc/reservation/reservation_bloc.dart';
 import 'core/utils/crypto_utils.dart';
+import 'data/datasources/api_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await di.init();
+  
+  // ApiService 초기화
+  await ApiService.init();
   
   // nRF Connect 설정용 해시값 출력
   CryptoUtils.printHashForNRFConnect();

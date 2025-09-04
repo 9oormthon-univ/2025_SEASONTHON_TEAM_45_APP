@@ -75,9 +75,18 @@ class AppointmentService {
 
       if (response.statusCode == 200 && response.data != null) {
         if (response.data['data'] != null && response.data['data'] is List) {
-          return (response.data['data'] as List)
-              .map((json) => AppointmentModel.fromJson(json))
+          print('====================================');
+          print('[예약 목록 조회]');
+          final appointments = (response.data['data'] as List)
+              .map((json) {
+                final appointment = AppointmentModel.fromJson(json);
+                print('ID: ${appointment.appointmentId}, 날짜: ${appointment.appointmentDate}, 시간: ${appointment.appointmentTime}, 상태: ${appointment.status}');
+                return appointment;
+              })
               .toList();
+          print('총 예약 개수: ${appointments.length}개');
+          print('====================================');
+          return appointments;
         }
         return [];
       } else {

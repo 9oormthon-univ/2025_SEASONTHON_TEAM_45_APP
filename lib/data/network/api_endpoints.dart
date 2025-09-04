@@ -1,7 +1,7 @@
 class ApiEndpoints {
   // Base URL - 실제 서버 URL
-  static const String baseUrl = 'http://13.209.99.158:8080';
-  //static const String baseUrl = 'http://218.51.41.52:9600';
+  //static const String baseUrl = 'http://13.209.99.158:8080';
+  static const String baseUrl = 'http://218.51.41.52:9600';
   
   // Auth Endpoints
   static const String login = '/api/v1/auth/patient/sign-in';
@@ -25,6 +25,7 @@ class ApiEndpoints {
   static const String cancelAppointment = '/api/v1/appointments';
   static const String myTodayAppointments = '/api/v1/appointments/my/today';
   static const String myAllAppointments = '/api/v1/appointments/my';
+  static const String checkIn = '/api/v1/appointments/checkin';
   
   // Time Slot Endpoints
   static const String availableTimeSlots = '/api/v1/patient/time-slots';

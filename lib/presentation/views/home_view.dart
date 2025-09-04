@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -8,7 +9,11 @@ import '../../core/widgets/gradient_background.dart';
 import '../bloc/reservation/reservation_bloc.dart';
 import '../bloc/reservation/reservation_state.dart';
 import '../bloc/reservation/reservation_event.dart';
+import '../bloc/ble/ble_bloc.dart';
+import '../bloc/ble/ble_event.dart';
+import '../bloc/ble/ble_state.dart';
 import 'appointment_initial_view.dart';
+import '../../injection_container.dart' as di;
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -21,16 +26,23 @@ class _HomeViewState extends State<HomeView> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   int? _memberId;
+  late BleBloc _bleBloc;
+  bool _isScanning = false;
+  dynamic _todayAppointment;
   
   @override
   void initState() {
     super.initState();
+    _bleBloc = di.sl<BleBloc>();
     _loadUserInfo();
+    _listenToBleState();
   }
 
   Future<void> _loadUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     final memberId = prefs.getInt('member_id');
+    
+    // print('[HomeView] 사용자 정보 로드 - memberId: $memberId');
     
     if (mounted) {
       setState(() {
@@ -46,7 +58,9 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   void dispose() {
+    _stopBleScanning();
     _pageController.dispose();
+    _bleBloc.close();
     super.dispose();
   }
 
@@ -64,11 +78,16 @@ class _HomeViewState extends State<HomeView> {
                 Expanded(
                   child: BlocBuilder<ReservationBloc, ReservationState>(
                         builder: (context, state) {
+                          // print('[HomeView] ReservationState: $state');
                           if (state is ReservationLoading) {
                             return const Center(child: CircularProgressIndicator());
                           } else if (state is ReservationLoaded) {
+                            // print('[HomeView] 예약 목록 조회 완료: ${state.reservations.length}개');
                             // 예약 정렬: 오늘 예약 우선, 그 다음 날짜순
                             final sortedReservations = _sortReservations(state.reservations);
+                            
+                            // 오늘 예약 확인 및 BLE 스캔 처리
+                            _checkTodayAppointmentAndStartBLE(sortedReservations);
                             
                             if (sortedReservations.isEmpty) {
                               return _buildEmptyState(context);
@@ -76,6 +95,7 @@ class _HomeViewState extends State<HomeView> {
                               return _buildReservationPages(context, sortedReservations);
                             }
                           } else if (state is ReservationError) {
+                            // print('[HomeView] 예약 조회 에러: ${state.message}');
                             return Center(child: Text(state.message));
                           }
                           return _buildEmptyState(context);
@@ -626,5 +646,143 @@ class _HomeViewState extends State<HomeView> {
       default:
         return '예약시간에 맞게 도착해 주세요';
     }
+  }
+  
+  // BLE 상태 리스닝
+  void _listenToBleState() {
+    _bleBloc.stream.listen((state) {
+      // print('[HomeView] BLE 상태 변경: ${state.runtimeType}');
+      
+      if (state is BleBluetoothOff) {
+        // print('[HomeView] 블루투스가 꺼져있음');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('블루투스를 켜주세요'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else if (state is BlePermissionDenied) {
+        // print('[HomeView] BLE 권한이 거부됨');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('블루투스 권한이 필요합니다'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else if (state is HospitalBeaconDetected) {
+        print('[HomeView] 병원 비콘 감지됨! 체크인 자동 처리');
+        // 체크인 성공 시 BLE 스캔이 자동으로 중지됨
+        
+        // 예약 목록 다시 로드하여 상태 업데이트
+        if (_memberId != null) {
+          Future.delayed(const Duration(seconds: 2), () {
+            // 체크인 처리 완료 후 예약 목록 새로고침
+            if (mounted) {
+              context.read<ReservationBloc>().add(LoadReservations(memberId: _memberId!));
+              
+              // 스낵바로 체크인 완료 알림
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('체크인이 완료되었습니다!'),
+                  backgroundColor: AppColors.primaryGreen,
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
+          });
+        }
+      }
+    });
+  }
+  
+  // 오늘 예약 확인 및 BLE 스캔 시작
+  void _checkTodayAppointmentAndStartBLE(List<dynamic> reservations) {
+    // print('[HomeView] _checkTodayAppointmentAndStartBLE 호출');
+    // print('[HomeView] 예약 개수: ${reservations.length}');
+    // print('[HomeView] 현재 스캔 중: $_isScanning');
+    
+    if (_isScanning) {
+      // print('[HomeView] 이미 스캔 중이므로 중단');
+      return; // 이미 스캔 중이면 중복 실행 방지
+    }
+    
+    final today = DateTime.now();
+    final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    // print('[HomeView] 오늘 날짜: $todayStr');
+    
+    print('====================================');
+    print('[테스트] 첫 번째 WAITING 예약으로 체크인 테스트');
+    
+    // 오늘 예약 찾기 (테스트: 날짜 관계없이 첫 WAITING 예약 사용)
+    for (var reservation in reservations) {
+      // 테스트용: 날짜 관계없이 첫 번째 WAITING 예약 사용
+      if (reservation.status == 'WAITING') {
+      // 원래 코드: if (reservation.appointmentDate == todayStr) {
+        _todayAppointment = reservation;
+        print('예약 발견!');
+        print('예약 ID: ${reservation.appointmentId}');
+        print('예약 날짜: ${reservation.appointmentDate}');
+        print('예약 시간: ${reservation.appointmentTime}');
+        print('예약 상태: ${reservation.status}');
+        
+        // SCHEDULED 또는 WAITING 상태일 때 BLE 스캔 시작
+        if (reservation.status == 'SCHEDULED' || reservation.status == 'WAITING') {
+          print('→ BLE 스캔 시작');
+          print('====================================');
+          _startBleScanning(
+            appointmentId: reservation.appointmentId,
+            memberId: _memberId ?? 0,
+          );
+        } else if (reservation.status == 'ARRIVED' || reservation.status == 'CHECKED_IN') {
+          print('→ 이미 체크인 완료, BLE 스캔 불필요');
+          print('====================================');
+          _stopBleScanning();
+        } else {
+          print('→ 상태(${reservation.status})로 인해 BLE 스캔 안 함');
+          print('====================================');
+        }
+        break;
+      }
+    }
+    
+    if (_todayAppointment == null) {
+      print('WAITING 상태 예약 없음');
+      print('====================================');
+    }
+  }
+  
+  // BLE 스캔 시작
+  void _startBleScanning({required int appointmentId, required int memberId}) async {
+    if (_isScanning) return;
+    
+    // print('[HomeView] BLE 스캔 시작 - appointmentId: $appointmentId, memberId: $memberId');
+    _isScanning = true;
+    
+    // BLE 권한 체크 먼저
+    // print('[HomeView] CheckPermissions 이벤트 전송');
+    _bleBloc.add(CheckPermissions());
+    
+    // iOS에서는 권한 체크 후 약간의 딜레이가 필요
+    if (Platform.isIOS) {
+      await Future.delayed(const Duration(milliseconds: 1000));
+    }
+    
+    // 실제 스캔 시작 (appointmentId와 memberId 전달)
+    // print('[HomeView] StartScanning 이벤트 전송');
+    _bleBloc.add(StartScanning(
+      appointmentId: appointmentId,
+      memberId: memberId,
+    ));
+  }
+  
+  // BLE 스캔 중지
+  void _stopBleScanning() {
+    if (!_isScanning) return;
+    
+    // print('[HomeView] BLE 스캔 중지');
+    _isScanning = false;
+    _bleBloc.add(StopScanning());
   }
 }

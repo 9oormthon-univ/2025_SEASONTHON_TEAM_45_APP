@@ -22,9 +22,12 @@ class BleRepositoryImpl implements BleRepository {
   }
 
   @override
-  Future<Either<Failure, void>> startScan() async {
+  Future<Either<Failure, void>> startScan({int? appointmentId, int? memberId}) async {
     try {
-      await remoteDataSource.startScan();
+      await remoteDataSource.startScan(
+        appointmentId: appointmentId,
+        memberId: memberId,
+      );
       return const Right(null);
     } catch (e) {
       return Left(ScanFailure(e.toString()));

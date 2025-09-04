@@ -8,7 +8,7 @@ import 'package:carefreepass/data/datasources/api_service.dart';
 
 abstract class BleRemoteDataSource {
   Stream<List<BleDeviceModel>> scanDevices();
-  Future<void> startScan();
+  Future<void> startScan({int? appointmentId, int? memberId});
   Future<void> stopScan();
   Future<bool> checkBluetoothStatus();
   Future<bool> requestPermissions();
@@ -21,6 +21,10 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
   StreamSubscription? _scanSubscription;
   final Set<String> _reportedDevices = {}; // 이미 보고된 디바이스 추적
   static const int rssiThreshold = -100; // RSSI 임계값 (10m 정도)
+  
+  // 체크인용 정보 저장
+  int? _currentAppointmentId;
+  int? _currentMemberId;
 
   @override
   Stream<List<BleDeviceModel>> scanDevices() {
@@ -95,14 +99,40 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
             final device = BleDeviceModel.fromScanResult(result);
             _foundDevices[device.id] = device;
             
-            // 자동 POST 요청 (중복 방지)
+            // 자동 체크인 요청 (중복 방지)
             if (!_reportedDevices.contains(device.id)) {
               _reportedDevices.add(device.id);
-              await ApiService.reportPatientArrival(
-                patientId: 'TEMP_USER_001', // TODO: 실제 사용자 ID로 변경
-                hospitalId: CryptoUtils.hospitalId,
-                rssi: result.rssi,
-              );
+              
+              // appointmentId와 memberId가 있을 때만 체크인 시도
+              if (_currentAppointmentId != null && _currentMemberId != null) {
+                // print('====================================');
+                // print('[BLE] 체크인 API 호출 시작');
+                // print('Device ID: ${device.id}');
+                // print('Appointment ID: $_currentAppointmentId');
+                // print('Member ID: $_currentMemberId');
+                // print('RSSI: ${result.rssi}');
+                // print('====================================');
+                
+                final success = await ApiService.reportPatientArrival(
+                  patientId: 'TEMP', // 호환성을 위해 유지
+                  hospitalId: CryptoUtils.hospitalId,
+                  rssi: result.rssi,
+                  appointmentId: _currentAppointmentId!,
+                  memberId: _currentMemberId!,
+                );
+                
+                if (success) {
+                  print('[BLE] 체크인 성공!');
+                  // 체크인 성공 시 스캔 중지
+                  await stopScan();
+                } else {
+                  // print('[BLE] 체크인 실패');
+                }
+              } else {
+                // print('[BLE] 체크인 정보 없음 (appointmentId: $_currentAppointmentId, memberId: $_currentMemberId)');
+              }
+            } else {
+              // print('[BLE] 이미 보고된 디바이스: ${device.id}');
             }
             
             // 필터링된 디바이스만 UI에 표시
@@ -119,7 +149,12 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
   }
 
   @override
-  Future<void> startScan() async {
+  Future<void> startScan({int? appointmentId, int? memberId}) async {
+    // 체크인 정보 저장
+    _currentAppointmentId = appointmentId;
+    _currentMemberId = memberId;
+    
+    // print('[BLE] 스캔 시작 - appointmentId: $appointmentId, memberId: $memberId');
     try {
       _foundDevices.clear();
       
@@ -150,8 +185,31 @@ class BleRemoteDataSourceImpl implements BleRemoteDataSource {
 
   @override
   Future<bool> checkBluetoothStatus() async {
-    final state = await FlutterBluePlus.adapterState.first;
-    return state == BluetoothAdapterState.on;
+    // iOS에서 블루투스 상태 체크 시 딜레이 필요
+    if (Platform.isIOS) {
+      // 블루투스 어댑터 상태가 안정화될 때까지 대기
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // 스트림으로 현재 상태 확인
+      final state = await FlutterBluePlus.adapterState
+          .timeout(const Duration(seconds: 2))
+          .first;
+      
+      // print('[BLE] iOS 블루투스 상태: $state');
+      
+      // Unknown 상태인 경우 다시 시도
+      if (state == BluetoothAdapterState.unknown) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        final retryState = await FlutterBluePlus.adapterState.first;
+        // print('[BLE] iOS 블루투스 재확인 상태: $retryState');
+        return retryState == BluetoothAdapterState.on;
+      }
+      
+      return state == BluetoothAdapterState.on;
+    } else {
+      final state = await FlutterBluePlus.adapterState.first;
+      return state == BluetoothAdapterState.on;
+    }
   }
 
   @override
