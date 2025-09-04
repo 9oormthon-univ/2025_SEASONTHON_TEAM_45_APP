@@ -74,8 +74,6 @@ dependencies:
   intl: ^0.18.1
   
   # Firebase 푸시 알림
-  firebase_core: ^2.24.0
-  firebase_messaging: ^14.7.0
 
 dev_dependencies:
   flutter_test:

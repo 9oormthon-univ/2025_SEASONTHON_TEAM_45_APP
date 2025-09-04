@@ -9,7 +9,6 @@ import '../../core/widgets/gradient_background.dart';
 import '../bloc/reservation/reservation_bloc.dart';
 import '../bloc/reservation/reservation_state.dart';
 import '../bloc/reservation/reservation_event.dart';
-import '../bloc/notification/notification_bloc.dart';
 import '../bloc/ble/ble_bloc.dart';
 import '../bloc/ble/ble_event.dart';
 import '../bloc/ble/ble_state.dart';
@@ -37,7 +36,6 @@ class _HomeViewState extends State<HomeView> {
     _bleBloc = di.sl<BleBloc>();
     _loadUserInfo();
     _listenToBleState();
-    _listenToNotifications();
   }
 
   Future<void> _loadUserInfo() async {
@@ -49,14 +47,9 @@ class _HomeViewState extends State<HomeView> {
         _memberId = memberId;
       });
       
-      // memberId가 있으면 예약 목록 조회 및 FCM 토큰 등록
+      // memberId가 있으면 예약 목록 조회
       if (memberId != null) {
         context.read<ReservationBloc>().add(LoadReservations(memberId: memberId));
-        
-        // FCM 토큰 등록
-        if (mounted) {
-          context.read<NotificationBloc>().add(RegisterFCMToken(memberId: memberId));
-        }
       }
     }
   }
@@ -651,42 +644,6 @@ class _HomeViewState extends State<HomeView> {
       default:
         return '예약시간에 맞게 도착해 주세요';
     }
-  }
-  
-  // 알림 상태 리스닝
-  void _listenToNotifications() {
-    context.read<NotificationBloc>().stream.listen((state) {
-      if (state is PatientCalledNotification) {
-        print('[HomeView] 환자 호출 알림 수신');
-        print('예약 ID: ${state.appointmentId}');
-        print('진료실: ${state.roomNumber}');
-        
-        context.read<ReservationBloc>().add(
-          UpdateAppointmentFromNotification(
-            appointmentId: state.appointmentId,
-            status: 'CALLED',
-            roomName: state.roomNumber,
-          ),
-        );
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${state.roomNumber}로 와주세요!'),
-            backgroundColor: AppColors.primaryGreen,
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      } else if (state is CheckInConfirmedNotification) {
-        print('[HomeView] 체크인 완료 알림 수신');
-        
-        context.read<ReservationBloc>().add(
-          UpdateAppointmentFromNotification(
-            appointmentId: state.appointmentId,
-            status: 'CHECKED_IN',
-          ),
-        );
-      }
-    });
   }
   
   // BLE 상태 리스닝
