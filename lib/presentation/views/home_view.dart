@@ -12,7 +12,7 @@ import '../bloc/reservation/reservation_event.dart';
 import '../bloc/ble/ble_bloc.dart';
 import '../bloc/ble/ble_event.dart';
 import '../bloc/ble/ble_state.dart';
-import 'appointment_initial_view.dart';
+import 'chat/chat_view.dart';
 import '../../injection_container.dart' as di;
 
 class HomeView extends StatefulWidget {
@@ -600,7 +600,7 @@ class _HomeViewState extends State<HomeView> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const AppointmentInitialView(),
+                builder: (context) => const ChatView(),
               ),
             );
           },

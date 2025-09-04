@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/gradient_background.dart';
@@ -9,12 +10,12 @@ import '../../widgets/custom_back_button.dart';
 import '../general_appointment_view.dart';
 
 class ChatView extends StatefulWidget {
-  final int memberId;
+  final int? memberId;
   final String? initialMessage;
 
   const ChatView({
     super.key,
-    required this.memberId,
+    this.memberId,
     this.initialMessage,
   });
 
@@ -26,15 +27,28 @@ class _ChatViewState extends State<ChatView> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
+  int? _memberId;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    _initializeChat();
+  }
+
+  Future<void> _initializeChat() async {
+    // widget.memberId가 없으면 SharedPreferences에서 가져오기
+    if (widget.memberId != null) {
+      _memberId = widget.memberId;
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      _memberId = prefs.getInt('member_id');
+    }
+    
+    // memberId가 있으면 채팅 세션 시작
+    if (_memberId != null && mounted) {
       final provider = Provider.of<ChatProvider>(context, listen: false);
-      // 세션만 시작, 초기 메시지는 보내지 않음
-      provider.startChatSession(widget.memberId);
-    });
+      provider.startChatSession(_memberId!);
+    }
   }
 
   @override
@@ -107,14 +121,54 @@ class _ChatViewState extends State<ChatView> {
                         return _buildTypingIndicator();
                       }
                       
-                      // 챗봇 안내 메세지
+                      // 챗봇 안내 메세지와 버튼
                       final totalMessages = provider.messages.length + (provider.isTyping ? 1 : 0);
                       if (index == totalMessages) {
-                        return Padding(
-                          padding: EdgeInsets.only(
-                            bottom: ResponsiveUtils.spacing(context, SpacingSize.md),
-                          ),
-                          child: _buildWelcomeCard(),
+                        return Column(
+                          children: [
+                            // 안내 메시지 카드
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: ResponsiveUtils.spacing(context, SpacingSize.md),
+                              ),
+                              child: _buildWelcomeCard(),
+                            ),
+                            
+                            // 일반 예약으로 전환 버튼 (카드 밖)
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: ResponsiveUtils.spacing(context, SpacingSize.md),
+                              ),
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const GeneralAppointmentView(),
+                                    ),
+                                  );
+                                },
+                                style: TextButton.styleFrom(
+                                  backgroundColor: AppColors.surfaceLight,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.small),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: ResponsiveUtils.spacing(context, SpacingSize.lg),
+                                    vertical: ResponsiveUtils.spacing(context, SpacingSize.sm),
+                                  ),
+                                ),
+                                child: Text(
+                                  '일반 예약으로 전환해줘',
+                                  style: TextStyle(
+                                    fontSize: ResponsiveUtils.fontSize(context, FontSize.sm),
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         );
                       }
                       
