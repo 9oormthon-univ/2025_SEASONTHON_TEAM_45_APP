@@ -711,13 +711,12 @@ class _HomeViewState extends State<HomeView> {
     // print('[HomeView] 오늘 날짜: $todayStr');
     
     print('====================================');
-    print('[테스트] 첫 번째 WAITING 예약으로 체크인 테스트');
+    print('[BLE 스캔] SCHEDULED 상태 예약 확인 중...');
     
-    // 오늘 예약 찾기 (테스트: 날짜 관계없이 첫 WAITING 예약 사용)
+    // 오늘 예약 중 SCHEDULED 상태인 예약 찾기
     for (var reservation in reservations) {
-      // 테스트용: 날짜 관계없이 첫 번째 WAITING 예약 사용
-      if (reservation.status == 'WAITING') {
-      // 원래 코드: if (reservation.appointmentDate == todayStr) {
+      // SCHEDULED 상태인 예약만 BLE 스캔 대상
+      if (reservation.status == 'SCHEDULED') {
         _todayAppointment = reservation;
         print('예약 발견!');
         print('예약 ID: ${reservation.appointmentId}');
@@ -725,28 +724,26 @@ class _HomeViewState extends State<HomeView> {
         print('예약 시간: ${reservation.appointmentTime}');
         print('예약 상태: ${reservation.status}');
         
-        // SCHEDULED 또는 WAITING 상태일 때 BLE 스캔 시작
-        if (reservation.status == 'SCHEDULED' || reservation.status == 'WAITING') {
-          print('→ BLE 스캔 시작');
-          print('====================================');
-          _startBleScanning(
-            appointmentId: reservation.appointmentId,
-            memberId: _memberId ?? 0,
-          );
-        } else if (reservation.status == 'ARRIVED' || reservation.status == 'CHECKED_IN') {
-          print('→ 이미 체크인 완료, BLE 스캔 불필요');
-          print('====================================');
-          _stopBleScanning();
-        } else {
-          print('→ 상태(${reservation.status})로 인해 BLE 스캔 안 함');
-          print('====================================');
-        }
+        // SCHEDULED 상태일 때만 BLE 스캔 시작
+        print('→ BLE 스캔 시작');
+        print('====================================');
+        _startBleScanning(
+          appointmentId: reservation.appointmentId,
+          memberId: _memberId ?? 0,
+        );
+        break;
+      } else if (reservation.status == 'ARRIVED' || reservation.status == 'CHECKED_IN') {
+        _todayAppointment = reservation;
+        print('이미 체크인 완료: ${reservation.status}');
+        print('→ BLE 스캔 불필요');
+        print('====================================');
+        _stopBleScanning();
         break;
       }
     }
     
     if (_todayAppointment == null) {
-      print('WAITING 상태 예약 없음');
+      print('SCHEDULED 상태 예약 없음');
       print('====================================');
     }
   }
