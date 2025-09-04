@@ -21,10 +21,6 @@ class CryptoUtils {
     final expectedPrefix = getExpectedHashPrefix();
     final deviceNameUpper = deviceName.toUpperCase();
     
-    // print('[CryptoUtils] Expected: $expectedPrefix');
-    // print('[CryptoUtils] Device: $deviceNameUpper');
-    // print('[CryptoUtils] Match: ${deviceNameUpper.startsWith(expectedPrefix)}');
-    
     // 디바이스 이름이 예상 해시 prefix로 시작하는지 확인
     return deviceNameUpper.startsWith(expectedPrefix);
   }

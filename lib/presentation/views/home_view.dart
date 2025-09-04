@@ -42,8 +42,6 @@ class _HomeViewState extends State<HomeView> {
     final prefs = await SharedPreferences.getInstance();
     final memberId = prefs.getInt('member_id');
     
-    // print('[HomeView] 사용자 정보 로드 - memberId: $memberId');
-    
     if (mounted) {
       setState(() {
         _memberId = memberId;
