@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/error/failures.dart';
 import '../../../core/error/exceptions.dart';
+import '../../../data/models/appointment_model.dart';
 import '../../../data/services/appointment_service.dart';
 import '../../../domain/entities/reservation.dart';
 import '../../../domain/usecases/get_reservations.dart';
@@ -27,6 +28,7 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
     on<RefreshReservation>(_onRefreshReservation);
     on<CheckInAppointment>(_onCheckInAppointment);
     on<UpdateAppointmentStatus>(_onUpdateAppointmentStatus);
+    on<UpdateAppointmentFromNotification>(_onUpdateAppointmentFromNotification);
   }
 
   Future<void> _onLoadReservations(
@@ -134,6 +136,39 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
       // dynamic 타입 처리 - AppointmentModel 사용
       emit(ReservationLoaded(reservations: currentState.reservations));
     }
+  }
+
+  Future<void> _onUpdateAppointmentFromNotification(
+    UpdateAppointmentFromNotification event,
+    Emitter<ReservationState> emit,
+  ) async {
+    if (state is ReservationLoaded) {
+      final currentState = state as ReservationLoaded;
+      
+      final updatedReservations = currentState.reservations.map((reservation) {
+        if (reservation.appointmentId == event.appointmentId) {
+          return _createUpdatedAppointment(reservation, event.status, event.roomName);
+        }
+        return reservation;
+      }).toList();
+      
+      emit(ReservationLoaded(reservations: updatedReservations));
+    }
+  }
+  
+  dynamic _createUpdatedAppointment(dynamic appointment, String status, String? roomName) {
+    return AppointmentModel(
+      appointmentId: appointment.appointmentId,
+      memberName: appointment.memberName,
+      hospitalName: appointment.hospitalName,
+      department: appointment.department,
+      appointmentDate: appointment.appointmentDate,
+      appointmentTime: appointment.appointmentTime,
+      status: status,
+      statusDescription: appointment.statusDescription,
+      canCall: appointment.canCall,
+      roomName: roomName ?? appointment.roomName,
+    );
   }
 
   String _mapFailureToMessage(Failure failure) {

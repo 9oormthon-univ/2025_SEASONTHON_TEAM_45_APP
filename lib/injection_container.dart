@@ -28,7 +28,9 @@ import 'domain/usecases/verify_sms_code.dart';
 import 'presentation/bloc/auth/auth_bloc.dart';
 import 'presentation/bloc/ble/ble_bloc.dart';
 import 'presentation/bloc/booking/booking_bloc.dart';
+import 'presentation/bloc/notification/notification_bloc.dart';
 import 'presentation/bloc/reservation/reservation_bloc.dart';
+import 'data/services/notification_service.dart';
 
 final sl = GetIt.instance;
 
@@ -66,6 +68,12 @@ Future<void> init() async {
     () => BookingBloc(
       getAvailableTimeSlots: sl(),
       createAppointment: sl(),
+    ),
+  );
+  
+  sl.registerFactory(
+    () => NotificationBloc(
+      notificationService: sl(),
     ),
   );
 
@@ -119,6 +127,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AuthService());
   sl.registerLazySingleton(() => ReservationApiService(authService: sl()));
   sl.registerLazySingleton(() => BookingService());
+  sl.registerLazySingleton(() => NotificationService());
   
   // Initialize auth service
   await sl<AuthService>().init();
