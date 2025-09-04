@@ -4,9 +4,31 @@ import '../../core/utils/responsive_utils.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../widgets/custom_back_button.dart';
 import 'general_appointment_view.dart';
+import 'chat/chat_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class AppointmentInitialView extends StatelessWidget {
+class AppointmentInitialView extends StatefulWidget {
   const AppointmentInitialView({super.key});
+  
+  @override
+  State<AppointmentInitialView> createState() => _AppointmentInitialViewState();
+}
+
+class _AppointmentInitialViewState extends State<AppointmentInitialView> {
+  int? _memberId;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadMemberId();
+  }
+  
+  Future<void> _loadMemberId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _memberId = prefs.getInt('member_id');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +75,7 @@ class AppointmentInitialView extends StatelessWidget {
                         borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 16,
                             offset: const Offset(0, 4),
                           ),
@@ -106,7 +128,24 @@ class AppointmentInitialView extends StatelessWidget {
                         // 어떻게 하는거야? 버튼
                         TextButton(
                           onPressed: () {
-                            // AI 챗봇으로 적용
+                            if (_memberId == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('로그인이 필요합니다'),
+                                ),
+                              );
+                              return;
+                            }
+                            // AI 챗봇 화면으로 이동
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatView(
+                                  memberId: _memberId!,
+                                  initialMessage: '병원 예약 방법을 알려주세요',
+                                ),
+                              ),
+                            );
                           },
                           style: TextButton.styleFrom(
                             backgroundColor: AppColors.surfaceLight,
@@ -173,7 +212,7 @@ class AppointmentInitialView extends StatelessWidget {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -197,10 +236,21 @@ class AppointmentInitialView extends StatelessWidget {
                                   ),
                                   readOnly: true,
                                   onTap: () {
-                                    // TODO: 챗봇 화면으로 이동 (추후 구현)
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('AI 챗봇 기능은 곧 구현될 예정입니다'),
+                                    if (_memberId == null) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('로그인이 필요합니다'),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    // AI 챗봇 화면으로 이동
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ChatView(
+                                          memberId: _memberId!,
+                                        ),
                                       ),
                                     );
                                   },
@@ -215,10 +265,21 @@ class AppointmentInitialView extends StatelessWidget {
                                 child: IconButton(
                                   icon: const Icon(Icons.arrow_upward, color: Colors.white),
                                   onPressed: () {
-                                    // TODO: 챗봇 메시지 전송 (추후 구현)
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('AI 챗봇 기능은 곧 구현될 예정입니다'),
+                                    if (_memberId == null) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('로그인이 필요합니다'),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    // AI 챗봇 화면으로 이동
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ChatView(
+                                          memberId: _memberId!,
+                                        ),
                                       ),
                                     );
                                   },

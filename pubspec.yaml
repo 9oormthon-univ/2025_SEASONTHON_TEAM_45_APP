@@ -74,6 +74,12 @@ dependencies:
   intl: ^0.18.1
   
   # Firebase 푸시 알림
+  
+  # 웹소켓 통신
+  web_socket_channel: ^2.4.0
+  
+  # 상태 관리
+  provider: ^6.1.1
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'injection_container.dart' as di;
 import 'core/constants/app_colors.dart';
 import 'presentation/bloc/ble/ble_bloc.dart';
@@ -15,6 +16,7 @@ import 'presentation/views/profile_management_view.dart';
 import 'presentation/bloc/reservation/reservation_bloc.dart';
 import 'core/utils/crypto_utils.dart';
 import 'data/datasources/api_service.dart';
+import 'presentation/providers/chat_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,8 +37,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => di.sl<AuthBloc>(),
+    return MultiProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => di.sl<AuthBloc>(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ChatProvider(),
+        ),
+      ],
       child: MaterialApp(
         title: 'CareFreePass',
         theme: ThemeData(

@@ -1,7 +1,7 @@
 class ApiEndpoints {
   // Base URL - 실제 서버 URL
-  //static const String baseUrl = 'http://13.209.99.158:8080';
-  static const String baseUrl = 'http://218.51.41.52:9600';
+  static const String baseUrl = 'http://13.209.99.158:8080';
+  //static const String baseUrl = 'http://218.51.41.52:9600';
   
   // Auth Endpoints
   static const String login = '/api/v1/auth/patient/sign-in';
@@ -36,4 +36,23 @@ class ApiEndpoints {
   // BLE/Beacon Endpoints
   static const String reportArrival = '/beacon/arrival';
   static const String checkInStatus = '/beacon/status';
+  
+  // Chat/AI Endpoints
+  static const String chatStart = '/api/v1/chat/start';
+  static const String chatMessage = '/api/v1/chat/message';
+  static const String chatSessionDetail = '/api/v1/chat/sessions'; // /{sessionId}
+  static const String chatSessionList = '/api/v1/chat/sessions';
+  static const String chatComplete = '/api/v1/chat/sessions'; // /{sessionId}/complete
+  
+  // WebSocket URL
+  static String get wsBaseUrl {
+    // http:// 또는 https://를 ws:// 또는 wss://로 변환
+    if (baseUrl.startsWith('https://')) {
+      return baseUrl.replaceFirst('https://', 'wss://');
+    } else if (baseUrl.startsWith('http://')) {
+      return baseUrl.replaceFirst('http://', 'ws://');
+    }
+    return baseUrl;
+  }
+  static const String wsChat = '/ws/chat'; // /{memberId}
 }

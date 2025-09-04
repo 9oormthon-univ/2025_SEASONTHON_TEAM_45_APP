@@ -13,7 +13,9 @@ import '../bloc/booking/booking_state.dart';
 import 'appointment_completion_view.dart';
 
 class GeneralAppointmentView extends StatefulWidget {
-  const GeneralAppointmentView({super.key});
+  final String? initialDepartment;
+  
+  const GeneralAppointmentView({super.key, this.initialDepartment});
 
   @override
   State<GeneralAppointmentView> createState() => _GeneralAppointmentViewState();
@@ -39,6 +41,11 @@ class _GeneralAppointmentViewState extends State<GeneralAppointmentView> {
   void initState() {
     super.initState();
     _loadMemberId();
+    // AI 챗봇에서 추천받은 진료과가 있으면 자동 선택
+    if (widget.initialDepartment != null && 
+        departments.contains(widget.initialDepartment)) {
+      selectedDepartment = widget.initialDepartment;
+    }
   }
 
   Future<void> _loadMemberId() async {
