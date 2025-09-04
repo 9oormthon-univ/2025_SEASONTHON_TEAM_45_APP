@@ -25,36 +25,38 @@ class ChatProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   // 채팅 세션 시작
-  Future<void> startChatSession(int memberId, String initialMessage) async {
+  Future<void> startChatSession(int memberId, [String? initialMessage]) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       _memberId = memberId;
       notifyListeners();
 
-      // API 호출로 세션 시작
-      final session = await _apiService.startChatSession(memberId, initialMessage);
+      // API 호출로 세션 시작 (서버가 초기 메시지를 필수로 요구)
+      final session = await _apiService.startChatSession(memberId, initialMessage ?? '채팅 시작');
       _currentSession = session;
-      _messages = session.messages;
+      
+      // 서버에서 받은 메시지 중 "채팅 시작" 초기 메시지만 제외하고 사용
+      // (서버가 자동으로 생성하는 초기 대화 제거)
+      _messages = session.messages.where((msg) {
+        // "채팅 시작" 메시지와 그에 대한 첫 AI 응답만 제거
+        if (msg.content == '채팅 시작' || 
+            (msg.senderType == SenderType.ai && msg.sequenceNumber <= 2)) {
+          return false;
+        }
+        return true;
+      }).toList();
 
-      // 웹소켓 연결 (선택적)
+      // 웹소켓 연결 비활성화 (서버에 엔드포인트 없음)
+      // WebSocket을 사용하려면 서버 엔드포인트 구현 필요
+      /*
       try {
         await _wsService.connect(memberId);
         _setupWebSocketListener();
       } catch (wsError) {
-        // 웹소켓 연결 실패해도 HTTP API로 계속 진행
         print('WebSocket connection failed, continuing with HTTP only: $wsError');
       }
-
-      // 환영 메시지 추가
-      if (_messages.isEmpty) {
-        _addMessage(ChatMessageModel(
-          senderType: SenderType.ai,
-          content: '안녕하세요! AI 병원 예약 도우미입니다. 어떤 증상으로 문의해주셨나요? 자세히 말씀해 주시면 적절한 진료과를 추천해 드리겠습니다.',
-          sequenceNumber: 1,
-          createdAt: DateTime.now(),
-        ));
-      }
+      */
 
     } catch (e) {
       _errorMessage = '채팅 시작에 실패했습니다: $e';
@@ -86,15 +88,15 @@ class ChatProvider with ChangeNotifier {
       _isTyping = true;
       notifyListeners();
 
-      // 웹소켓이 연결되어 있으면 웹소켓으로 전송
-      if (_wsService.isConnected) {
-        _wsService.sendMessage({
-          'type': 'chat_message',
-          'sessionId': _currentSession!.sessionId,
-          'message': content,
-          'timestamp': DateTime.now().toIso8601String(),
-        });
-      } else {
+      // WebSocket 비활성화 - 항상 HTTP API 사용
+      // if (_wsService.isConnected) {
+      //   _wsService.sendMessage({
+      //     'type': 'chat_message',
+      //     'sessionId': _currentSession!.sessionId,
+      //     'message': content,
+      //     'timestamp': DateTime.now().toIso8601String(),
+      //   });
+      // } else {
         print('ChatProvider - Using HTTP API for message');
         // HTTP API로 전송
         final response = await _apiService.sendMessage(
@@ -155,7 +157,6 @@ class ChatProvider with ChangeNotifier {
           final analysis = SymptomAnalysisModel.fromJson(response['symptomAnalysis']);
           _updateAnalysis(analysis);
         }
-      }
 
     } catch (e) {
       _errorMessage = '메시지 전송에 실패했습니다: $e';
@@ -256,13 +257,13 @@ class ChatProvider with ChangeNotifier {
     _isLoading = false;
     _isTyping = false;
     _errorMessage = null;
-    _wsService.disconnect();
+    // _wsService.disconnect(); // WebSocket 비활성화
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _wsService.dispose();
+    // _wsService.dispose(); // WebSocket 비활성화
     super.dispose();
   }
 }

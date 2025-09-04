@@ -32,11 +32,8 @@ class _ChatViewState extends State<ChatView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<ChatProvider>(context, listen: false);
-      if (widget.initialMessage != null) {
-        provider.startChatSession(widget.memberId, widget.initialMessage!);
-      } else {
-        provider.startChatSession(widget.memberId, '안녕하세요');
-      }
+      // 세션만 시작, 초기 메시지는 보내지 않음
+      provider.startChatSession(widget.memberId);
     });
   }
 
