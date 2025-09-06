@@ -225,8 +225,18 @@ class _HomeViewState extends State<HomeView> {
   // 통합된 카드 위젯
   // 카드 배경 SVG와 내용을 담는 컨테이너
   Widget _buildCard(BuildContext context, Widget content) {
-    return SizedBox(
+    return Container(
       height: ResponsiveUtils.heightPercent(context, 55), // 카드 고정 높이 55%
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02), // 그림자 색상 (더 어둡게)
+            blurRadius: 50, // 블러 반경
+            spreadRadius: 1, // 확산 반경
+            offset: const Offset(10, 10), // 그림자 위치 (아래쪽)
+          ),
+        ],
+      ),
       child: Stack(
         alignment: Alignment.center,
         children: [
