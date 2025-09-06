@@ -72,7 +72,7 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
       if (!event.isPollingUpdate) {
         _currentMemberId = event.memberId;
         add(StartPolling());
-        print('[폴링] 5초 간격 자동 상태 확인 시작 (Push Notification 대체)');
+        print('[폴링] 2초 간격 자동 상태 확인 시작 (Push Notification 대체)');
       }
       
     } on ServerException catch (e) {
@@ -207,8 +207,8 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
   ) async {
     _pollingTimer?.cancel();
     
-    // 5초마다 상태 확인 (Push Notification 대체)
-    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    // 2초마다 상태 확인 (Push Notification 대체)
+    _pollingTimer = Timer.periodic(const Duration(seconds: 2), (_) {
       if (_currentMemberId != null) {
         add(LoadReservations(
           memberId: _currentMemberId!,
