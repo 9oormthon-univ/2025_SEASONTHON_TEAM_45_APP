@@ -683,23 +683,19 @@ class _HomeViewState extends State<HomeView> {
         print('[HomeView] 병원 비콘 감지됨! 체크인 자동 처리');
         // 체크인 성공 시 BLE 스캔이 자동으로 중지됨
         
-        // 예약 목록 다시 로드하여 상태 업데이트
+        // 예약 목록 즉시 업데이트 (딜레이 없음)
         if (_memberId != null) {
-          Future.delayed(const Duration(seconds: 2), () {
-            // 체크인 처리 완료 후 예약 목록 새로고침
-            if (mounted) {
-              context.read<ReservationBloc>().add(LoadReservations(memberId: _memberId!));
-              
-              // 스낵바로 체크인 완료 알림
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('체크인이 완료되었습니다!'),
-                  backgroundColor: AppColors.primaryGreen,
-                  duration: Duration(seconds: 3),
-                ),
-              );
-            }
-          });
+          // 체크인 성공 즉시 예약 목록 새로고침
+          context.read<ReservationBloc>().add(LoadReservations(memberId: _memberId!));
+          
+          // 스낵바로 체크인 완료 알림
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('체크인이 완료되었습니다! 대기 중입니다.'),
+              backgroundColor: AppColors.primaryGreen,
+              duration: Duration(seconds: 3),
+            ),
+          );
         }
       }
     });
