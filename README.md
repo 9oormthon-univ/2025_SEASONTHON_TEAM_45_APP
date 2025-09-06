@@ -1,106 +1,219 @@
-# CareFreePass - 병원 방문을 편하게
+# 🏥 CareFreePass - 병원 방문을 편하게
+  
+  **디지털 취약 계층도 쉽게 사용하는 스마트 병원 체크인 시스템**
 
-병원 방문이 익숙하지 않은 디지털 취약 계층을 위해, 도착 인식부터 진료 호출까지 자동화된 병원 예약·대기 지원 시스템
+## 📌 프로젝트 소개
 
-## 문제 인식
+**CareFreePass**는 병원 방문이 익숙하지 않은 700만 디지털 취약 계층을 위해, **도착 인식부터 진료 호출까지** 모든 과정을 자동화한 스마트 헬스케어 솔루션입니다.
 
-환자와 병원은 병원에 들어서는 순간부터 보이지 않는 스트레스와 싸웁니다.
+### 🎯 핵심 가치
+> **"아무것도 하지 않아도 모든 것이 자동으로"**
 
-### 환자의 문제
+키오스크도, QR 코드도 필요 없습니다. 그저 병원에 들어서기만 하면 됩니다.
 
-**'증명'의 피로감**  
-키오스크, QR 등 도착 사실을 알리기 위한 수동 체크인의 번거로움과 여기서 발생하는 디지털 소외 현상.
+---
 
-**'대기'의 불안감**  
-내 순서를 놓칠까 봐 전광판만 쳐다봐야 하는 심리적 스트레스와 마스크, 소음 등으로 인한 호출 누락 문제.
+## 🚀 주요 기능
 
-### 병원의 문제
+### 1️⃣ **BLE 자동 체크인** 
+- 병원 입구 진입 시 **Zero Touch** 자동 체크인
+- SHA-256 해싱으로 보안 강화
+- 3초 내 체크인 완료
 
-**업무 비효율**  
-호출을 놓친 환자 응대, 키오스크 사용법 안내 등 반복적인 업무로 인한 리소스 낭비.
+### 2️⃣ **AI 챗봇 상담** 🤖
+- 자연어로 증상 입력
+- AI가 적절한 진료과 추천
+- 예약까지 원스톱 처리
 
-**관리의 어려움**  
-환자의 실제 도착 여부를 몰라 '노쇼(No-Show)'를 호명하거나 대기열이 꼬이는 등 관리의 혼선 발생.
+### 3️⃣ **개인 맞춤 호출** 📱
+- 1초 간격 실시간 상태 확인 (폴링)
+- 진료 순서 도래 시 즉시 푸시 알림
+- 청각 장애인용 시각 알림 지원
 
-## 해결 방안
+### 4️⃣ **접근성 최우선 UI** ♿
+- 초대형 글씨 (노인 친화적)
+- 고대비 색상 (시각 장애 대응)
+- 원터치 인터페이스
 
-환자용 앱, 병원용 웹, 그리고 위치 감지용 비콘(안드로이드폰 활용)을 연동하여, 병원 도착부터 진료 호출까지의 전 과정을 자동화합니다.
+---
 
-### 📱 환자용 앱: 나의 첫 '불안 없는 병원 비서'
-- **자동 체크인**: 병원 진입 시 아무런 조작 없이 비콘 신호를 감지해 자동으로 도착 처리
-- **개인 맞춤 호출**: 내 순서가 되면 스마트폰으로 푸시 알림으로 확실하게 호출
+## 🔐 BLE 보안 (SHA-256)
 
-### 🖥️ 병원용 웹: 클릭 한 번으로 끝내는 '대기열 관제탑'
-- **실시간 현황 파악**: 환자 목록과 실제 도착 여부를 한눈에 확인
-- **원클릭 호출**: 버튼 클릭 한 번으로 해당 환자에게 정확하게 호출 신호 전송
+### 보안 3단계 프로세스
 
-### 📡 비콘 인프라: 환자와 병원을 잇는 '보이지 않는 다리'
-안드로이드 기기를 비콘으로 활용하여 최소 비용으로 위치 기반 자동화의 핵심 인프라를 구축.
+```
+1. Detection (감지)
+   └─ 병원 BLE 비콘 신호 자동 감지
 
-## 시스템 구조
+2. Authentication (인증)  
+   └─ SHA-256 해시값 검증 (5ED4A4459CA1)
+   
+3. Check-in (체크인)
+   └─ 환자 정보 매칭 → 자동 체크인 완료
+```
 
-![시스템 구조도](assets/images/시스템 흐름도.png)
+### 🛡️ SHA-256 보안 구현
+```dart
+// 원본 (절대 전송 안 함)
+String hospitalId = "Goormhospital";
+String password = "123456";
 
-1. **BLE 신호 감지**: 환자 앱이 병원 내 비콘(BLE) 신호를 자동 감지
-2. **환자 병원 내원 알림**: 감지된 신호를 기반으로 병원 웹에 자동 알림
-3. **호출 신호 전송**: 병원에서 환자 순번 호출 시 앱으로 푸시 알림
+// SHA-256 해싱
+String fullHash = sha256("Goormhospital123456");
+// = "5ed4a4459ca1d4bd7dd023d17aad8f89a1f2847c479eb7430aca84ef43543170"
 
-## 기술 스택
+// 실제 전송값 (상위 12자리만)
+String beacon = "5ED4A4459CA1";  // 복호화 불가능
+```
 
-### Flutter 앱 (환자용)
-- **Flutter**: 크로스플랫폼 모바일 앱 개발
-- **Bloc Pattern**: 상태 관리
-- **flutter_blue_plus**: BLE 통신
-- **Clean Architecture**: 유지보수성과 테스트 용이성
+**💡 핵심**: 원본 정보는 절대 전송되지 않으며, 해시값 탈취 시에도 역산 불가능
 
-### 클린 아키텍처 구조
+---
+
+## 🛠️ 기술 스택
+
+### Frontend (Mobile)
+- **Flutter 3.8.1** - 크로스플랫폼 앱 개발
+- **Dart** - 프로그래밍 언어
+- **Clean Architecture** - 확장 가능한 구조
+
+### 상태 관리
+- **Bloc 8.1.2** - 비즈니스 로직 분리
+- **Provider 6.1.1** - 채팅 기능 상태 관리
+- **GetIt 7.6.4** - 의존성 주입
+
+### BLE & 네트워크
+- **flutter_blue_plus 1.31.13** - BLE 통신
+- **HTTP 1.1.0** - REST API
+- **WebSocket 2.4.0** - 실시간 통신
+- **Crypto 3.0.3** - SHA-256 해싱
+
+### UI/UX
+- **flutter_svg 2.0.10** - SVG 렌더링
+- **flutter_screenutil 5.9.0** - 반응형 UI
+- **Material Design 3** - 디자인 시스템
+
+---
+
+## 📂 프로젝트 구조
 
 ```
 lib/
 ├── core/                 # 핵심 공통 기능
-│   ├── error/           # 에러 처리
-│   └── usecases/        # 유즈케이스 추상화
+│   ├── constants/       # 색상, 상수
+│   ├── utils/          # 유틸리티 (암호화, 반응형)
+│   └── widgets/        # 공통 위젯
 │
-├── domain/              # 비즈니스 로직 (순수 Dart)
-│   ├── entities/        # 핵심 비즈니스 객체
-│   ├── repositories/    # 레포지토리 인터페이스
-│   └── usecases/        # 비즈니스 유즈케이스
+├── domain/              # 비즈니스 로직
+│   ├── entities/       # 도메인 모델
+│   ├── repositories/   # 레포지토리 인터페이스
+│   └── usecases/       # 유즈케이스
 │
-├── data/                # 데이터 처리
-│   ├── datasources/     # 외부 데이터 소스
-│   ├── models/          # 데이터 모델
-│   └── repositories/    # 레포지토리 구현체
+├── data/                # 데이터 레이어
+│   ├── datasources/    # API, BLE 통신
+│   ├── models/         # 데이터 모델
+│   └── repositories/   # 레포지토리 구현
 │
 └── presentation/        # UI 레이어
-    ├── bloc/           # 상태 관리 (Bloc)
-    │   └── ble/        # BLE 관련 Bloc
+    ├── bloc/           # Bloc 상태 관리
     ├── views/          # 화면
-    └── widgets/        # 재사용 위젯
+    └── providers/      # Provider 상태 관리
 ```
 
-### 주요 특징
+---
 
-**Layer 분리**
-- 각 레이어는 독립적으로 동작하며 의존성 역전 원칙을 따름
-- Domain 레이어는 순수 Dart 코드로만 구성되어 비즈니스 로직 보호
-
-**의존성 주입**
-- GetIt을 통한 의존성 주입으로 테스트 용이성 확보
-- 모든 의존성은 injection_container.dart에서 중앙 관리
-
-**에러 처리**
-- Either 패턴을 통한 명시적 에러 처리
-- Failure 클래스를 통한 일관된 에러 관리
-
-## 시작하기
+## ⚡ 시작하기
 
 ### 필수 요구사항
-- Flutter SDK 3.0 이상
+- Flutter SDK 3.8.1 이상
+- Dart SDK 3.0 이상
 - iOS: Xcode 14.0 이상
 - Android: Android Studio
 
-### BLE 테스트 방법
+### 설치 및 실행
 
-1. **안드로이드 기기**: nRF Connect 앱에서 Advertiser 모드로 BLE 신호 송출
-2. **iOS 기기**: 이 앱을 실행하여 BLE 신호 자동 감지
-3. 신호 강도(RSSI)로 거리 추정 및 병원 도착 판단
+```bash
+# 1. 레포지토리 클론
+git clone https://github.com/yourusername/carefreepass.git
+cd carefreepass
+
+# 2. 의존성 설치
+flutter pub get
+
+# 3. 앱 실행
+flutter run
+
+# 4. APK 빌드 (Android)
+flutter build apk --release
+
+# 5. IPA 빌드 (iOS)
+flutter build ios --release
+```
+
+### BLE 테스트 설정
+
+#### Android (비콘 역할)
+1. nRF Connect 앱 설치
+2. Advertiser 모드 선택
+3. Device Name: `5ED4A4459CA1` 입력
+4. Start Advertising
+
+#### iOS/Android (환자 앱)
+1. 앱 실행
+2. 블루투스/위치 권한 허용
+3. 병원 비콘 자동 감지
+
+---
+
+## 🌐 API 엔드포인트
+
+### 인증
+- `POST /api/v1/auth/login` - 로그인
+- `POST /api/v1/auth/signup` - 회원가입
+- `POST /api/v1/auth/refresh` - 토큰 갱신
+
+### 예약 관리
+- `GET /api/v1/appointments/my` - 내 예약 목록
+- `POST /api/v1/appointments` - 예약 생성
+- `PUT /api/v1/appointments/checkin` - 체크인
+
+### AI 챗봇
+- `POST /api/v1/chat/start` - 채팅 시작
+- `POST /api/v1/chat/message` - 메시지 전송
+- `GET /api/v1/chat/history` - 대화 내역
+
+### 알림 (폴링)
+- `GET /api/v1/notifications` - 알림 조회 (2초 간격)
+
+---
+
+## 📱 화면 구성
+
+| 스플래시 | 로그인 | 홈 화면 | AI 챗봇 |
+|---------|--------|---------|---------|
+| ![Splash](docs/screenshots/splash.png) | ![Login](docs/screenshots/login.png) | ![Home](docs/screenshots/home.png) | ![Chat](docs/screenshots/chat.png) |
+
+---
+
+## 🏆 프로젝트 성과
+
+- ✅ **BLE 자동 체크인** 구현 완료
+- ✅ **SHA-256 보안** 적용
+- ✅ **AI 챗봇** 통합
+- ✅ **1초 실시간 폴링** 시스템
+- ✅ **접근성 UI/UX** 최적화
+
+---
+
+## 👥 팀 정보
+
+**2025 SEASONTHON TEAM 45**
+
+| 역할 | 담당 | 기술 스택 |
+|------|------|----------|
+| Frontend | 앱 개발 | Flutter, Dart, Bloc |
+| Backend | API 서버 | Spring Boot, MySQL |
+| Design | UI/UX | Figma, SVG |
+| PM | 기획 | 의료 도메인 전문 |
+
+  Made with ❤️ by Team 45
