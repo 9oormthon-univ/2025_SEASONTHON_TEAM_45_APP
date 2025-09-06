@@ -19,8 +19,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHome() async {
-    // 스플래시 화면 표시 시간 (2초)
-    await Future.delayed(const Duration(seconds: 2));
+    // 스플래시 화면 표시 시간 (1초)
+    await Future.delayed(const Duration(seconds: 1));
     
     if (!mounted) return;
     

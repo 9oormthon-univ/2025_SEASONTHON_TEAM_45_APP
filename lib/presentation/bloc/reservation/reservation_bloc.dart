@@ -72,7 +72,7 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
       if (!event.isPollingUpdate) {
         _currentMemberId = event.memberId;
         add(StartPolling());
-        print('[폴링] 2초 간격 자동 상태 확인 시작 (Push Notification 대체)');
+        print('[폴링] 1초 간격 자동 상태 확인 시작 (Push Notification 대체)');
       }
       
     } on ServerException catch (e) {
