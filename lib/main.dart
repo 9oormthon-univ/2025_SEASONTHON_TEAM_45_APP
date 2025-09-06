@@ -5,6 +5,7 @@ import 'injection_container.dart' as di;
 import 'core/constants/app_colors.dart';
 import 'presentation/bloc/ble/ble_bloc.dart';
 import 'presentation/bloc/auth/auth_bloc.dart';
+import 'presentation/views/splash_screen.dart';
 import 'presentation/views/login_initial_view.dart';
 import 'presentation/views/login_input_view.dart';
 import 'presentation/views/signup_view.dart';
@@ -54,9 +55,10 @@ class MyApp extends StatelessWidget {
           fontFamily: 'Pretendard',
           primaryColor: AppColors.primaryGreen,
         ),
-        home: const LoginInitialView(),
+        home: const SplashScreen(),
         routes: {
           '/login': (context) => const LoginInitialView(),
+          '/login-initial': (context) => const LoginInitialView(),
           '/login_input': (context) => const LoginInputView(),
           '/signup': (context) => const SignupView(),
           '/permission_check': (context) => const PermissionSettingsView(),
