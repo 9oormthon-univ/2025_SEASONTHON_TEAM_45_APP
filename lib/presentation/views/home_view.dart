@@ -73,8 +73,7 @@ class _HomeViewState extends State<HomeView> {
                 _buildHeader(context),
                 
                 // 예약 카드 영역
-                Expanded(
-                  child: BlocBuilder<ReservationBloc, ReservationState>(
+                BlocBuilder<ReservationBloc, ReservationState>(
                         builder: (context, state) {
                           // print('[HomeView] ReservationState: $state');
                           if (state is ReservationLoading) {
@@ -98,7 +97,6 @@ class _HomeViewState extends State<HomeView> {
                           }
                           return _buildEmptyState(context);
                         },
-                  ),
                 ),
                 
                 // 하단 예약하기 버튼
@@ -167,14 +165,14 @@ class _HomeViewState extends State<HomeView> {
 
   // 예약이 없을 때 표시되는 화면
   Widget _buildEmptyState(BuildContext context) {
-    return Padding(
-      padding: ResponsiveUtils.horizontalPaddingOnly(context),
-      child: Column(
-        children: [
-          _buildCard(context, _buildEmptyContent(context)),
-          SizedBox(height: ResponsiveUtils.heightPercent(context, 3)), // 화면 높이의 3%
-        ],
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: ResponsiveUtils.horizontalPaddingOnly(context),
+          child: _buildCard(context, _buildEmptyContent(context)),
+        ),
+      ],
     );
   }
 
@@ -193,8 +191,10 @@ class _HomeViewState extends State<HomeView> {
   // 여러 예약 카드를 스와이프 가능한 페이지로 표시
   Widget _buildReservationPages(BuildContext context, List<dynamic> reservations) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
+        SizedBox(
+          height: ResponsiveUtils.heightPercent(context, 55), // 카드 고정 높이
           child: PageView.builder(
             controller: _pageController,
             itemCount: reservations.length,
@@ -218,12 +218,7 @@ class _HomeViewState extends State<HomeView> {
   Widget _buildReservationCard(BuildContext context, dynamic reservation) {
     return Padding(
       padding: ResponsiveUtils.horizontalPaddingOnly(context),
-      child: Column(
-        children: [
-          _buildCard(context, _buildReservationContent(context, reservation)),
-          SizedBox(height: ResponsiveUtils.heightPercent(context, 3)), // 화면 높이의 3%
-        ],
-      ),
+      child: _buildCard(context, _buildReservationContent(context, reservation)),
     );
   }
 
@@ -564,7 +559,7 @@ class _HomeViewState extends State<HomeView> {
   Widget _buildPageIndicator(int pageCount) {
     return Padding(
       padding: EdgeInsets.symmetric(
-        vertical: ResponsiveUtils.heightPercent(context, 1), // 상하 패딩
+        vertical: ResponsiveUtils.heightPercent(context, 1.5), // 상하 패딩 줄임
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -591,7 +586,12 @@ class _HomeViewState extends State<HomeView> {
   // 하단 예약하기 버튼
   Widget _buildBottomButton(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(ResponsiveUtils.spacing(context, SpacingSize.lg)),
+      padding: EdgeInsets.only(
+        left: ResponsiveUtils.spacing(context, SpacingSize.lg),
+        right: ResponsiveUtils.spacing(context, SpacingSize.lg),
+        bottom: ResponsiveUtils.spacing(context, SpacingSize.lg),
+        top: ResponsiveUtils.spacing(context, SpacingSize.lg), // 상단 여백 최소화
+      ),
       child: SizedBox(
         width: double.infinity,
         height: ResponsiveUtils.buttonHeight(context),
