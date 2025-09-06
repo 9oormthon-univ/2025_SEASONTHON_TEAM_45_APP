@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../core/widgets/gradient_background.dart';
@@ -18,25 +19,22 @@ class LoginInitialView extends StatelessWidget {
             children: [
               const Spacer(flex: 2),
               
-              // Logo placeholder
-              Container(
+              // Logo
+              SvgPicture.asset(
+                'assets/images/Cloud_login.svg',
                 width: ResponsiveUtils.widthPercent(context, 40),
                 height: ResponsiveUtils.widthPercent(context, 40),
-                decoration: BoxDecoration(
-                  color: AppColors.grayLight,
-                  borderRadius: ResponsiveUtils.borderRadius(context, RadiusSize.medium),
-                ),
               ),
               
               SizedBox(height: ResponsiveUtils.spacing(context, SpacingSize.lg)),
               
               // Subtitle
               Text(
-                'Subtitle',
+                '병원 예약과 진료를 스마트하게',
                 style: TextStyle(
                   fontSize: ResponsiveUtils.fontSize(context, FontSize.md),
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
                 ),
               ),
               
